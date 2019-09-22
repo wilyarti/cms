@@ -6,6 +6,9 @@ import io.ktor.http.Parameters
 import io.ktor.http.parametersOf
 import io.ktor.response.respond
 import kotlinx.css.div
+import kotlinx.css.em
+import kotlinx.css.p
+import kotlinx.css.script
 import kotlinx.html.*
 import net.opens3.db_password
 import net.opens3.db_username
@@ -14,6 +17,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import os3.respondCss
 
 object pages : Table() {
     val id = pages.integer("id").autoIncrement().primaryKey() // Column<Int>
@@ -59,7 +63,7 @@ fun connectToDB(): Unit {
 }
 
 fun Route.dynamicPagesAPI() {
-    get("/{page}") {
+    get("{page}") {
         val queryParameters: Parameters = call.request.queryParameters
         val requestedPageNumber: String? = call.request.queryParameters["page"]
         var pageNumber = 1
@@ -75,12 +79,18 @@ fun Route.dynamicPagesAPI() {
                     href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
                     type = "text/css"
                 )
+                link(
+                    rel = "stylesheet",
+                    href = "/static/blog.css",
+                    type = "text/css"
+                )
+                script(src = "https://unpkg.com/feather-icons") {}
             }
             body {
-                div(classes = "container") {
+                div(classes = "container-fluid") {
                     nav {
                         classes = setOf("navbar", "navbar-expand-lg", "navbar-light", "bg-light")
-                        a(href = "#") {
+                        a(href = "/home/") {
                             classes = setOf("navbar-brand")
                             img(src = "/static/favicon.ico") {
                                 attributes["width"] = "30"
@@ -95,47 +105,55 @@ fun Route.dynamicPagesAPI() {
                                 classes = setOf("navbar-nav")
                                 for (page in pageData) {
                                     li {
-                                        if (page.id == pageNumber ) {
-                                            classes =setOf("nav-item active")
+                                        if (page.id == pageNumber) {
+                                            classes = setOf("nav-item active")
                                         } else {
                                             classes = setOf("nav-item")
                                         }
                                         a(href = "/&?page=${page.id}") {
                                             classes = setOf("nav-link")
-                                            +page.name
-                                            /*span {
-                                                classes = setOf("sr-only")
-                                            }*/
+                                            span {
+                                                unsafe {
+                                                    raw("""<i data-feather="${page.icon}"></i>""")
+                                                }
+                                                +" "
+                                                +page.name
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
                     div {
-                        div {
-                            h1 {
-                                +pageData[pageNumber-1].name
-                            }
-                            "Posts:"
+                        for (post in pageData[pageNumber - 1].posts) {
                             div {
-                                for (post in pageData[pageNumber-1].posts) {
+                                classes = setOf("blog-post")
+                                div {
                                     h4 {
                                         +post.name
                                     }
+                                }
+                                div {
+                                    classes = setOf("card-body")
                                     unsafe {
                                         +post.contents
                                     }
                                 }
                             }
-                            br {}
                         }
                     }
                 }
             }
+            unsafe {
+                raw(
+                    """<script>feather.replace();</script>"""
+                )
+            }
         }
     }
-    get("/getPageList") {
+    get("/api/getPageList") {
         call.respond(getPages())
     }
 }

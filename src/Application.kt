@@ -1,5 +1,6 @@
 package os3
 
+import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.request.*
@@ -14,6 +15,12 @@ import io.ktor.features.*
 import org.slf4j.event.*
 import io.ktor.gson.*
 import dynamicPagesAPI
+
+data class jsonReq(
+    val url: String
+)
+data class Success(val success: Boolean)
+
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
@@ -41,6 +48,27 @@ fun Application.module() {
 
     routing {
         dynamicPagesAPI()
+        post("/api/getJSON") {
+            val thisReq = call.receive<jsonReq>()
+            val req = khttp.get(thisReq.url)
+            println(thisReq.url)
+            if (req.statusCode == 200) {
+                call.respond(req.jsonObject)
+            } else {
+                call.respond( Success (success = false ))
+            }
+        }
+        post("/api/getHTML") {
+            val thisReq = call.receive<jsonReq>()
+            val req = khttp.get(thisReq.url)
+            println(thisReq.url)
+            if (req.statusCode == 200) {
+                call.respond(req.content)
+
+            } else {
+                call.respondHtml { body { +"Unsuccessful request" } }
+            }
+        }
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
