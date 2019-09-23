@@ -68,7 +68,6 @@ fun Application.module() {
             println(thisReq.url)
             if (req.statusCode == 200) {
                 call.respond(req.content)
-
             } else {
                 call.respondHtml { body { +"Unsuccessful request" } }
             }
