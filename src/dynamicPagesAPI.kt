@@ -153,8 +153,11 @@ fun Route.dynamicPagesAPI() {
             }
         }
     }
-    get("/api/getPageList") {
+    get("/api/getPages") {
         call.respond(getPages())
+    }
+    get("/api/getPosts") {
+        call.respond(getPosts())
     }
 }
 
@@ -186,6 +189,25 @@ fun getPages(): MutableList<completePage> {
         }
     }
     return returnedPages
+}
+
+fun getPosts(): MutableList<thisPost> {
+    connectToDB()
+    var returnedPosts = mutableListOf<thisPost>()
+    transaction {
+        SchemaUtils.create(posts)
+        val allPosts = posts.selectAll()
+        for (p in allPosts) {
+            val currentPost = thisPost(
+                id = p[posts.id],
+                pageID = p[posts.pageID],
+                name = p[posts.name],
+                contents = p[posts.contents].toString()
+            )
+            returnedPosts.add(currentPost)
+        }
+    }
+    return returnedPosts
 }
 
 fun getPageList(): MutableList<pageList> {

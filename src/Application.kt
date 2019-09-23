@@ -47,6 +47,10 @@ fun Application.module() {
     }
 
     routing {
+        static("/static") {
+            resources("static")
+            resources("static/static")
+        }
         dynamicPagesAPI()
         post("/api/getJSON") {
             val thisReq = call.receive<jsonReq>()
@@ -68,10 +72,6 @@ fun Application.module() {
             } else {
                 call.respondHtml { body { +"Unsuccessful request" } }
             }
-        }
-        // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
-            resources("static")
         }
     }
 }
