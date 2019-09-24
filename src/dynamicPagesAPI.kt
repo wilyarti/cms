@@ -131,6 +131,34 @@ fun connectToDB(): Unit {
 }
 
 fun Route.dynamicPagesAPI() {
+    post ("/api/deletePage") {
+        try {
+            val deletedPage = call.receive<thisPage>()
+            val remoteHost: String = call.request.origin.remoteHost
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Pages)
+                val txID = Pages.deleteWhere { Pages.id eq deletedPage.id}
+            }
+            call.respond(Status(success=true, errorMessage = ""))
+        } catch(e: Throwable) {
+            call.respond(Status(success=false, errorMessage= e.toString()))
+        }
+    }
+    post ("/api/deletePost") {
+        try {
+            val deletedPost = call.receive<thisPage>()
+            val remoteHost: String = call.request.origin.remoteHost
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Posts)
+                val txID = Posts.deleteWhere { Posts.id eq deletedPost.id}
+            }
+            call.respond(Status(success=true, errorMessage = ""))
+        } catch(e: Throwable) {
+            call.respond(Status(success=false, errorMessage= e.toString()))
+        }
+    }
     post ("/api/addPost") {
         try {
             val incomingPost = call.receive<thisPost>()
