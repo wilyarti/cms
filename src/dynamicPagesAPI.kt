@@ -6,6 +6,7 @@ import io.ktor.html.*
 import io.ktor.http.Parameters
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.response.respondRedirect
 import io.ktor.routing.post
 import kotlinx.html.*
 import net.opens3.db_password
@@ -131,35 +132,35 @@ fun connectToDB(): Unit {
 }
 
 fun Route.dynamicPagesAPI() {
-    post ("/api/deletePage") {
+    post("/api/deletePage") {
         try {
             val deletedPage = call.receive<thisPage>()
             val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
-                val txID = Pages.deleteWhere { Pages.id eq deletedPage.id}
+                val txID = Pages.deleteWhere { Pages.id eq deletedPage.id }
             }
-            call.respond(Status(success=true, errorMessage = ""))
-        } catch(e: Throwable) {
-            call.respond(Status(success=false, errorMessage= e.toString()))
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-    post ("/api/deletePost") {
+    post("/api/deletePost") {
         try {
             val deletedPost = call.receive<thisPage>()
             val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                val txID = Posts.deleteWhere { Posts.id eq deletedPost.id}
+                val txID = Posts.deleteWhere { Posts.id eq deletedPost.id }
             }
-            call.respond(Status(success=true, errorMessage = ""))
-        } catch(e: Throwable) {
-            call.respond(Status(success=false, errorMessage= e.toString()))
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-    post ("/api/addPost") {
+    post("/api/addPost") {
         try {
             val incomingPost = call.receive<thisPost>()
             val remoteHost: String = call.request.origin.remoteHost
@@ -185,12 +186,12 @@ fun Route.dynamicPagesAPI() {
                     it[likes] = 0
                 }
             }
-            call.respond(Status(success=true, errorMessage = ""))
-        } catch(e: Throwable) {
-            call.respond(Status(success=false, errorMessage= e.toString()))
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-    post ("/api/addPage") {
+    post("/api/addPage") {
         try {
             val incomingPage = call.receive<thisPage>()
             val remoteHost: String = call.request.origin.remoteHost
@@ -215,12 +216,15 @@ fun Route.dynamicPagesAPI() {
                     it[likes] = 0
                 }
             }
-            call.respond(Status(success=true, errorMessage = ""))
-        } catch(e: Throwable) {
-            call.respond(Status(success=false, errorMessage= e.toString()))
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-    get("{page}") {
+    get("/") {
+        call.respondRedirect("/home/page=1")
+    }
+    get("/home/{page}") {
         val queryParameters: Parameters = call.request.queryParameters
         val requestedPageNumber: String? = call.request.queryParameters["page"]
         var pageNumber = 1
@@ -267,7 +271,7 @@ fun Route.dynamicPagesAPI() {
                                         } else {
                                             classes = setOf("nav-item")
                                         }
-                                        a(href = "/&?page=${page.id}") {
+                                        a(href = "/home/page=${page.id}") {
                                             classes = setOf("nav-link")
                                             span {
                                                 unsafe {
@@ -310,9 +314,79 @@ fun Route.dynamicPagesAPI() {
             }
         }
     }
+
     get("/api/getAllPostsAndPages") {
         call.respond(getAllPostsAndPages())
     }
+
+    get("/api/getPosts") {
+        call.respond(getPosts())
+    }
+
+    get("/api/getPages") {
+        call.respond(getPages())
+    }
+
+}
+fun getPages(): MutableList<thisPage> {
+    connectToDB()
+    var returnedListOfPages = mutableListOf<thisPage>()
+    transaction {
+        SchemaUtils.create(Pages)
+        for (page in Pages.selectAll()) {
+            val currentPage = thisPage(
+                id = page[Pages.id],
+                disabled = page[Pages.disabled],
+                parentID = page[Pages.parentID],
+                priorityBit = page[Pages.priorityBit],
+                name = page[Pages.name],
+                icon = page[Pages.icon],
+                pageID = page[Pages.pageID],
+                author = page[Pages.author],
+                group = page[Pages.group],
+                createdTime = page[Pages.createdTime].toString(),
+                countryOfOrigin = page[Pages.countryOfOrigin],
+                language = page[Pages.language],
+                executionScript = page[Pages.executionScript].toString(),
+                metadata = page[Pages.metadata].toString(),
+                type = page[Pages.type],
+                likes = page[Pages.likes]
+            )
+            returnedListOfPages.add(currentPage)
+        }
+    }
+    return returnedListOfPages
+}
+
+fun getPosts(): MutableList<thisPost> {
+    connectToDB()
+    var returnedListOfPosts = mutableListOf<thisPost>()
+    transaction {
+        SchemaUtils.create(Posts)
+        for (p in Posts.selectAll()) {
+            var currentPost = thisPost(
+                id = p[Posts.id],
+                disabled = p[Posts.disabled],
+                parentID = p[Posts.parentID],
+                priorityBit = p[Posts.priorityBit],
+                name = p[Posts.name],
+                icon = p[Posts.icon],
+                pageID = p[Posts.pageID],
+                author = p[Posts.author],
+                group = p[Posts.group],
+                createdTime = p[Posts.createdTime].toString(),
+                countryOfOrigin = p[Posts.countryOfOrigin],
+                language = p[Posts.language],
+                executionScript = p[Posts.executionScript].toString(),
+                contents = p[Posts.contents].toString(),
+                metadata = p[Posts.metadata].toString(),
+                type = p[Posts.type],
+                likes = p[Posts.likes]
+            )
+            returnedListOfPosts.add(currentPost)
+        }
+    }
+    return returnedListOfPosts
 }
 
 fun getAllPostsAndPages(): MutableList<completePage> {
