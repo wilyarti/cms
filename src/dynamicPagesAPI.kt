@@ -221,6 +221,39 @@ fun Route.dynamicPagesAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
+
+    post("/api/updatePost") {
+        try {
+            val incomingPost = call.receive<thisPost>()
+            val remoteHost: String = call.request.origin.remoteHost
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Posts)
+                val txID = Posts.update( {Posts.id eq incomingPost.id}) {
+                    it[disabled] = false
+                    it[parentID] = 0
+                    it[priorityBit] = 255
+                    it[name] = incomingPost.name
+                    it[icon] = incomingPost.icon
+                    it[contents] = incomingPost.contents
+                    it[pageID] = incomingPost.pageID // which page it is displayed on
+                    it[author] = "root"
+                    it[group] = "wheel"
+                    it[createdTime] = incomingPost.createdTime
+                    it[countryOfOrigin] = "AU"
+                    it[language] = "EN"
+                    it[executionScript] = "Nothing to see here."
+                    it[metadata] = "Add me."
+                    it[type] = 1
+                    it[likes] = 0
+                }
+            }
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
+
     get("/") {
         call.respondRedirect("/home/page=1")
     }
@@ -239,12 +272,12 @@ fun Route.dynamicPagesAPI() {
                     rel = "stylesheet",
                     href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
                     type = "text/css"
-                )
+                )/*
                 link(
                     rel = "stylesheet",
                     href = "/static/blog.css",
                     type = "text/css"
-                )
+                )*/
                 script(src = "https://unpkg.com/feather-icons") {}
             }
             body {
@@ -326,7 +359,6 @@ fun Route.dynamicPagesAPI() {
     get("/api/getPages") {
         call.respond(getPages())
     }
-
 }
 fun getPages(): MutableList<thisPage> {
     connectToDB()
