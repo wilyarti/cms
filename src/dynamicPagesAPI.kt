@@ -221,7 +221,36 @@ fun Route.dynamicPagesAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-
+    post("/api/updatePage") {
+        try {
+            val incomingPage = call.receive<thisPage>()
+            val remoteHost: String = call.request.origin.remoteHost
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Pages)
+                val txID = Pages.update( {Pages.id eq incomingPage.id}) {
+                    it[disabled] = false
+                    it[parentID] = 0
+                    it[priorityBit] = 255
+                    it[name] = incomingPage.name
+                    it[icon] = incomingPage.icon
+                    it[pageID] = incomingPage.pageID // which page it is displayed on
+                    it[author] = "root"
+                    it[group] = "wheel"
+                    it[createdTime] = incomingPage.createdTime
+                    it[countryOfOrigin] = "AU"
+                    it[language] = "EN"
+                    it[executionScript] = "Nothing to see here."
+                    it[metadata] = "Add me."
+                    it[type] = 1
+                    it[likes] = 0
+                }
+            }
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
     post("/api/updatePost") {
         try {
             val incomingPost = call.receive<thisPost>()
