@@ -9,14 +9,17 @@ import io.ktor.routing.get
 internal fun Route.dynamicPages() {
 
     get("/") {
-        call.respondRedirect("/home/page=1")
+        call.respondRedirect("/home/1")
     }
     get("/home/{page}") {
-        val queryParameters: Parameters = call.request.queryParameters
-        val requestedPageNumber: String? = call.request.queryParameters["page"]
+        val requestedPageNumber: String? = call.parameters["page"]
         var pageNumber = 1
         if (requestedPageNumber !== null) {
-            pageNumber = requestedPageNumber!!.toInt()
+            try {
+                pageNumber = requestedPageNumber!!.toInt()
+            } catch(error: Throwable) {
+                println(error)
+            }
         }
         var pageData = getAllPostsAndPages()
         println("pagenumber ${pageNumber}")
@@ -38,7 +41,7 @@ internal fun Route.dynamicPages() {
                 div(classes = "container-fluid") {
                     nav {
                         classes = setOf("navbar", "navbar-expand-lg", "navbar-light", "bg-light")
-                        a(href = "/home/") {
+                        a(href = "/home/1") {
                             classes = setOf("navbar-brand")
                             img(src = "/static/favicon.png") {
                                 attributes["width"] = "30"
@@ -58,7 +61,7 @@ internal fun Route.dynamicPages() {
                                         } else {
                                             classes = setOf("nav-item")
                                         }
-                                        a(href = "/home/page=${page.id}") {
+                                        a(href = "/home/${page.id}") {
                                             classes = setOf("nav-link")
                                             span {
                                                 unsafe {
