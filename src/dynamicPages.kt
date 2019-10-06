@@ -1,3 +1,4 @@
+// Contains the routes for the Content Management System in the /home route.
 import io.ktor.application.call
 import io.ktor.html.respondHtml
 import io.ktor.http.Parameters

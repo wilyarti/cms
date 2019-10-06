@@ -1,3 +1,5 @@
+// Contains the boiler plate for the majority of the routes.
+// This is needed for authentication and sessions, which are stored on the server.
 package os3
 
 import AuthName

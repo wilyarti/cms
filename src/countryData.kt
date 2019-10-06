@@ -1,3 +1,4 @@
+// Country codes for the /rtstats.html web app.
 fun countryCode(): MutableMap<String,String> {
     return mutableMapOf<String, String>(
         "AF" to "AFG",

@@ -1,5 +1,7 @@
+// Contains all the data classes, SQL tables and JSON data classes.
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
+
 
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 

@@ -1,3 +1,4 @@
+// Routes and API for the /rtstats.html web app.
 import io.ktor.application.call
 import io.ktor.response.respond
 import io.ktor.response.respondText

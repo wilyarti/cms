@@ -66,17 +66,23 @@ fun Application.module() {
     }
 
     routing {
+        // setup routes
         homepageRoute()
         loginRoute()
         logoutRoute()
         profileRoute()
+        // for the /kbcomp.html web app
         kettlebellCompetition()
+        // for the /admin.html web app
         adminAPI()
+        // our static files
         static("/") {
             //defaultResource("main.html", "static")
             resources("static")
         }
+        // various API routes
         API()
+        // legacy routes for /rtstats.html
         rtStatsGraphingAPI()
     }
 }

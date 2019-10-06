@@ -1,3 +1,4 @@
+// Kettlebell competition web app
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.routing.get

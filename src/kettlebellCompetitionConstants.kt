@@ -1,4 +1,4 @@
-
+// Data classes for the Kettlebell Competition Web App
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
 
