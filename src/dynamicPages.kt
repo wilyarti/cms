@@ -17,7 +17,7 @@ internal fun Route.dynamicPages() {
         if (requestedPageNumber !== null) {
             try {
                 pageNumber = requestedPageNumber!!.toInt()
-            } catch(error: Throwable) {
+            } catch (error: Throwable) {
                 println(error)
             }
         }
@@ -29,7 +29,11 @@ internal fun Route.dynamicPages() {
                     rel = "stylesheet",
                     href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
                     type = "text/css"
-                )/*
+                )
+                unsafe {
+                    raw ("""<meta name="viewport" content="width=device-width, initial-scale=1">""")
+                }
+                /*
                 link(
                     rel = "stylesheet",
                     href = "/static/blog.css",
@@ -38,63 +42,50 @@ internal fun Route.dynamicPages() {
                 script(src = "https://unpkg.com/feather-icons") {}
             }
             body {
-                div(classes = "container-fluid") {
-                    nav {
-                        classes = setOf("navbar", "navbar-expand-lg", "navbar-light", "bg-light")
-                        a(href = "/home/1") {
-                            classes = setOf("navbar-brand")
-                            img(src = "/static/favicon.png") {
-                                attributes["width"] = "30"
-                                attributes["height"] = "30"
-                                attributes["alt"] = ""
-                            }
-                        }
-                        div {
-                            attributes["id"] = "navbarNav"
-                            classes = setOf("collapse", "navbar-collapse")
-                            ul {
-                                classes = setOf("navbar-nav")
-                                for (page in pageData) {
-                                    li {
-                                        if (page.id == pageNumber) {
-                                            classes = setOf("nav-item active")
-                                        } else {
-                                            classes = setOf("nav-item")
-                                        }
-                                        a(href = "/home/${page.id}") {
-                                            classes = setOf("nav-link")
-                                            span {
-                                                unsafe {
-                                                    raw("""<i data-feather="${page.icon}"></i>""")
-                                                }
-                                                +" "
-                                                +page.name
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                unsafe {
+                    raw(
+                        """
+                   <container-fluid>
+                    <nav class="navbar navbar-expand navbar-dark bg-dark">
+                        <a href="/home/1" class="navbar-brand"><img src="/static/favicon.png" alt="" width="30" height="30"></a>
+                        <div id="navbarNav" class="collapse navbar-collapse">
+                        <ul class="navbar-nav">
+                        """
+                    )
+                }
+                for (page in pageData) {
+                    var navtype = "nav-item"
+                    if (page.id == pageNumber) {
+                        navtype = "nav-item active"
                     }
+                    var html = """<li class='${navtype}'>
+                                <a href="/home/${page.id}" class="nav-link"><span><i data-feather="${page.icon}"></i> ${page.name}</span></a>
+                                </li>
+                            """
+                    unsafe {
+                        raw(
+                            """${html}"""
+                        )
+                    }
+                }
 
-                    div {
-                        for (post in pageData[pageNumber - 1].posts) {
-                            div {
-                                classes = setOf("blog-post")
-                                div {
-                                    h4 {
-                                        +post.name
-                                    }
-                                }
-                                div {
-                                    classes = setOf("card-body")
-                                    unsafe {
-                                        +post.contents
-                                    }
-                                }
-                            }
-                        }
+                unsafe {
+                    raw(
+                        """</ul></div></nav>"""
+                    )
+                }
+                for (post in pageData[pageNumber - 1].posts) {
+                    unsafe {
+                        raw(""" <div class="card" style="margin-bottom: 15px; margin-top: 10px; margin-left: 5px; margin-right: 5px">
+                        <div class="card-header h6"><h3>${post.name}</h3></div>
+                        <div class="card-body"><div row><div class="col">${post.contents}</div></div></div>
+                    </div>""")
                     }
+                }
+                unsafe {
+                    raw(
+                        """</div></div></container-fluid>"""
+                    )
                 }
             }
             unsafe {

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors"/>
+    <meta name="generator" content="Jekyll v3.8.5"/>
+    <title></title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+          integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+
+    <style>
+        body {
+            min-width: 500px;
+        }
+
+        #container1 {
+            position: relative;
+            height: 475px;
+        }
+
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="css/dashboard.css" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.12.1/themes/cupertino/jquery-ui.css" rel="stylesheet">
+
+</head>
+
+<body>
+<nav class="navbar navbar-expand navbar-dark bg-dark">
+    <a href="/home/1" class="navbar-brand"><img src="/static/favicon.png" alt="" width="30" height="30"></a>
+    <h5>Server Statistics - DNS Advertisment/Tracking Blocker</h5>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+        <main role="main">
+            <div class="alert alert-light" role="alert">
+                <div class="row">
+                    Queries Per Country
+                </div>
+            </div>
+            <div id="container1"></div>
+            <div class="alert alert-light" role="alert">
+                <div class="row">
+                    <div class="btn-group mr-2 mx-auto">
+                        <h6>Select Date:</h6>
+                        <span data-feather="calendar"></span>
+                        <input id="datepicker" type="text" autocomplete="off">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <h6 class="alert-heading">Selected Statistics</h6>
+                        </div>
+                        <hr>
+                        <div id="localstatsQ"></div>
+                        <div id="localstatsB"></div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <h6 class="alert-heading"> All Time Totals</h6>
+                        </div>
+                        <hr>
+                        <div id="stats"></div>
+                    </div>
+                </div>
+            </div>
+            <canvas class="my-4 w-100" id="myChart" height="475"></canvas>
+            <canvas class="my-4 w-100" id="myChart2" height="500"></canvas>
+        </main>
+    </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+        integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/datamaps/0.5.8/datamaps.all.js"></script>
+<script src="js/moment.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+<script src="js/chartFunctions.js"></script>
+</body>
+</html>

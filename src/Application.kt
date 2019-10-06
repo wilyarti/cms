@@ -7,6 +7,7 @@ import Cookies
 import FormFields
 import MySession
 import adminAPI
+import rtStatsGraphingAPI
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.response.*
@@ -76,6 +77,7 @@ fun Application.module() {
             resources("static")
         }
         API()
+        rtStatsGraphingAPI()
     }
 }
 

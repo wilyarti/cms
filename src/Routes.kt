@@ -17,6 +17,7 @@ import io.ktor.sessions.clear
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
 import kotlinx.html.*
+import rtStatsGraphingAPI
 
 internal fun Routing.homepageRoute() {
     /*authenticate(AuthName.SESSION, optional = true) {
