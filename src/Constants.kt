@@ -2,7 +2,7 @@
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
 
-
+const val MAXPOSTSPERPAGE  =5
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 
 object Pages : Table() {

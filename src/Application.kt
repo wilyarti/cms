@@ -1,13 +1,10 @@
 package os3
 
-import API
 import AuthName
 import CommonRoutes
 import Cookies
 import FormFields
 import MySession
-import adminAPI
-import rtStatsGraphingAPI
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.response.*
@@ -27,7 +24,6 @@ import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
-import kettlebellCompetition
 import kotlin.collections.set
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -71,19 +67,11 @@ fun Application.module() {
         loginRoute()
         logoutRoute()
         profileRoute()
-        // for the /kbcomp.html web app
-        kettlebellCompetition()
-        // for the /admin.html web app
-        adminAPI()
         // our static files
         static("/") {
             //defaultResource("main.html", "static")
             resources("static")
         }
-        // various API routes
-        API()
-        // legacy routes for /rtstats.html
-        rtStatsGraphingAPI()
     }
 }
 

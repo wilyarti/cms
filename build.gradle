@@ -12,13 +12,12 @@ buildscript {
 
     }
 }
-
 apply plugin: 'kotlin'
 apply plugin: 'application'
 apply plugin: "com.github.johnrengelman.shadow"
 
 group 'os3'
-version '0.1.1'
+version '0.1.2'
 mainClassName = "io.ktor.server.netty.EngineMain"
 
 sourceSets {
@@ -63,11 +62,11 @@ dependencies {
     compile 'org.jetbrains.exposed:exposed:0.11.2'
     compile 'org.apache.httpcomponents:httpclient:4.5.6'
     compile 'org.apache.commons:commons-lang3:3.8.1'
-    compile files("/home/undef/Workspace/src/weatherbot")
     compile "io.ktor:ktor-auth:$ktor_version"
     compile "com.github.jengelman.gradle.plugins:shadow:4.0.3"
     compile 'org.json:json:20160212'
     compile 'khttp:khttp:0.1.0'
+    compile 'joda-time:joda-time:2.10.4'
     compile "io.ktor:ktor-metrics:$ktor_version"
 }
 shadowJar {
@@ -75,3 +74,5 @@ shadowJar {
         attributes 'Main-Class': mainClassName
     }
 }
+
+def klockVersion = "1.7.0"

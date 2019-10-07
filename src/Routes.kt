@@ -2,12 +2,12 @@
 // This is needed for authentication and sessions, which are stored on the server.
 package os3
 
+import API
 import AuthName
 import CommonRoutes
 import FormFields
 import MySession
 import adminAPI
-import com.mysql.jdbc.authentication.MysqlClearPasswordPlugin
 import dynamicPages
 import io.ktor.application.call
 import io.ktor.auth.authenticate
@@ -18,6 +18,7 @@ import io.ktor.routing.*
 import io.ktor.sessions.clear
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
+import kettlebellCompetition
 import kotlinx.html.*
 import rtStatsGraphingAPI
 
@@ -40,15 +41,49 @@ internal fun Routing.homepageRoute() {
         }
     }
     */
-     dynamicPages()
+    dynamicPages()
+    // for the /kbcomp.html web app
+    kettlebellCompetition()
+    // for the /admin.html web app
+    adminAPI()
+    // various API routes
+    API()
+    // legacy routes for /rtstats.html
+    rtStatsGraphingAPI()
 }
 
 internal fun Routing.loginRoute() {
     route(CommonRoutes.LOGIN) {
         get {
             call.respondHtml {
+                head {
+                    link(
+                        rel = "stylesheet",
+                        href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
+                        type = "text/css"
+                    )
+                    unsafe {
+                        raw("""<meta name="viewport" content="width=device-width, initial-scale=1">""")
+                    }
+                    /*
+                    link(
+                        rel = "stylesheet",
+                        href = "/static/blog.css",
+                        type = "text/css"
+                    )*/
+                    script(src = "https://unpkg.com/feather-icons") {}
+                }
                 body {
                     // Create a form that POSTs back to this same route
+                    unsafe {
+                        raw(
+                            """
+                            <nav class="navbar navbar-expand navbar-dark bg-dark">
+                                <a href="#home" class="navbar-brand"><img alt="" src="/static/favicon.png" class="d-inline-block align-top" width="30" height="30"> Login</a>
+                            </nav><container-fluid>
+                        """.trimIndent()
+                        )
+                    }
                     form(method = FormMethod.post) {
                         // handle any possible errors
                         val queryParams = call.request.queryParameters
@@ -56,6 +91,9 @@ internal fun Routing.loginRoute() {
                             "invalid" in queryParams -> "Sorry, incorrect username or password."
                             "no" in queryParams -> "Sorry, you need to be logged in to do that."
                             else -> null
+                        }
+                        h3 {
+                            +"Please login."
                         }
                         if (errorMsg != null) {
                             div {
@@ -75,6 +113,17 @@ internal fun Routing.loginRoute() {
                             value = "Log in"
                         }
                     }
+                    unsafe {
+                        raw(
+                            """</container-fluid>"""
+                        )
+                    }
+                }
+
+                unsafe {
+                    raw(
+                        """<script>feather.replace();</script>"""
+                    )
                 }
             }
         }
@@ -105,17 +154,51 @@ internal fun Route.profileRoute() {
         get(CommonRoutes.PROFILE) {
             val principal = call.principal<MySession>()!!
             call.respondHtml {
+                head {
+                    link(
+                        rel = "stylesheet",
+                        href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
+                        type = "text/css"
+                    )
+                    unsafe {
+                        raw("""<meta name="viewport" content="width=device-width, initial-scale=1">""")
+                    }
+                    /*
+                    link(
+                        rel = "stylesheet",
+                        href = "/static/blog.css",
+                        type = "text/css"
+                    )*/
+                    script(src = "https://unpkg.com/feather-icons") {}
+                }
                 body {
+                    unsafe {
+                        raw("""<container-fluid>""")
+                    }
                     div {
-                        +"Hello, $principal!"
+                        +"Hello, ${principal.username}!"
+                    }
+                    div {
+                        a(href = "/kbcomp.html") {
+                            +"Kettlebell Competition"
+                        }
                     }
                     div {
                         a(href = CommonRoutes.LOGOUT) {
                             +"Log out"
                         }
                     }
+                    unsafe {
+                        raw("""</container-fluid>""")
+                    }
+                }
+                unsafe {
+                    raw(
+                        """<script>feather.replace();</script>"""
+                    )
                 }
             }
+
         }
     }
 }
