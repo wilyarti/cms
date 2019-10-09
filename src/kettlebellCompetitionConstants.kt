@@ -1,5 +1,6 @@
 // Data classes for the Kettlebell Competition Web App
-import io.ktor.auth.Principal
+package os3
+
 import org.jetbrains.exposed.sql.Table
 
 data class MyID(
@@ -8,9 +9,9 @@ data class MyID(
 )
 
 object KettleBellPresses : Table() {
-    val id = KettleBellPresses.integer("id").autoIncrement().primaryKey() // main id
-    val uuid = KettleBellPresses.integer("uuid") // allow tree structure (stipulate parent)
-    val weight = KettleBellPresses.integer("weight")
-    val repetitions = KettleBellPresses.integer("repetitions")
-    val createdTime = KettleBellPresses.varchar("createdTime", length = 150) // date, time and timezone
+    val id = integer("id").autoIncrement().primaryKey() // main id
+    val uuid = integer("uuid") // allow tree structure (stipulate parent)
+    val weight = integer("weight")
+    val repetitions = integer("repetitions")
+    val createdTime = varchar("createdTime", length = 150) // date, time and timezone
 }

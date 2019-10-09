@@ -1,16 +1,20 @@
 // Kettlebell competition web app
+package os3
+
 import io.ktor.application.call
 import io.ktor.auth.authenticate
-import io.ktor.routing.get
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.post
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import io.ktor.routing.Routing
+import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
-import os3.connectToDB
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 internal fun Routing.kettlebellCompetition() {
     authenticate(AuthName.SESSION, optional = true) {
@@ -19,12 +23,12 @@ internal fun Routing.kettlebellCompetition() {
             try {
                 val addSet = call.receive<ThisSet>()
                 if (thisSession?.id != addSet.uuid) {
-                    throw (error("Access not permitted."))
+                    call.respond(Status(success = false, errorMessage = "Access not permitted."))
                 }
                 connectToDB()
                 transaction {
                     SchemaUtils.create(KettleBellPresses)
-                    KettleBellPresses.insert() {
+                    KettleBellPresses.insert {
                         it[uuid] = addSet.uuid
                         it[weight] = addSet.weight
                         it[repetitions] = addSet.repetitions
@@ -41,14 +45,14 @@ internal fun Routing.kettlebellCompetition() {
 
         }
         get("/api/getKettlebellPresses") {
-            call.respond(kettlebellPresses());
+            call.respond(kettlebellPresses())
         }
         get("/api/getMyID") {
             val thisSession = call.sessions.get<MySession>()
-            var userName: String
+            val userName: String
             if (thisSession !== null) {
                 userName = thisSession.username
-                call.respond(getMyID(userName));
+                call.respond(getMyID(userName))
             } else {
                 call.respond(MyID(id = 0, active = false))
             }
@@ -58,10 +62,10 @@ internal fun Routing.kettlebellCompetition() {
 
 fun getMyID(userName: String): MyID {
     connectToDB()
-    var activeID = MyID(id = 0, active = false)
+    val activeID = MyID(id = 0, active = false)
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select({ Users.name eq userName })) {
+        for (user in Users.select { Users.name eq userName }) {
             val currentUser = UserID(
                 id = user[Users.id],
                 name = user[Users.name]
@@ -75,7 +79,7 @@ fun getMyID(userName: String): MyID {
 
 fun getUserList(): MutableList<UserID> {
     connectToDB()
-    var returnedListOfUsers = mutableListOf<UserID>()
+    val returnedListOfUsers = mutableListOf<UserID>()
     transaction {
         SchemaUtils.create(Users)
         for (user in Users.selectAll()) {
@@ -91,7 +95,7 @@ fun getUserList(): MutableList<UserID> {
 
 fun kettlebellPresses(): MutableList<ThisSet> {
     connectToDB()
-    var returnedListOfSets = mutableListOf<ThisSet>()
+    val returnedListOfSets = mutableListOf<ThisSet>()
     transaction {
         SchemaUtils.create(KettleBellPresses)
         for (set in KettleBellPresses.selectAll()) {

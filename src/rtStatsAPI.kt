@@ -1,4 +1,6 @@
 // Routes and API for the /rtstats.html web app.
+package os3
+
 import io.ktor.application.call
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -10,7 +12,7 @@ fun initRedis(): Jedis {
     return Jedis()
 }
 fun checkParam(param: String?): Boolean {
-    var dateParam = param!!.split("-")
+    val dateParam = param!!.split("-")
     val months = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     for (month in months) {
         if (month == dateParam[0]) {
@@ -29,9 +31,9 @@ fun Route.rtStatsGraphingAPI(){
         call.respond(Success(true))
     }
     get("/graphingAPI/rtallowed/{date}") {
-        var param = call.parameters["date"]
+        val param = call.parameters["date"]
         if (checkParam(param)) {
-            var query = mutableMapOf<String, String>()
+            val query: MutableMap<String, String>
             var s1: String
             var s2: String
             val redis = initRedis()
@@ -63,9 +65,9 @@ fun Route.rtStatsGraphingAPI(){
         }
     }
     get("/graphingAPI/rtblocked/{date}") {
-        var param = call.parameters["date"]
+        val param = call.parameters["date"]
         if (checkParam(param)) {
-            var query = mutableMapOf<String, String>()
+            val query: MutableMap<String, String>
             var s1: String
             var s2: String
             val redis = initRedis()
@@ -97,29 +99,29 @@ fun Route.rtStatsGraphingAPI(){
         }
     }
     get("/graphingAPI/topblocked/{date}") {
-        var param = call.parameters["date"]
+        val param = call.parameters["date"]
         if (checkParam(param)) {
-            var query = mutableMapOf<String, String>()
-            var topquery = mutableMapOf<String, String>()
+            val query: MutableMap<String, String>
+            val topQuery = mutableMapOf<String, String>()
             val redis = initRedis()
             query = redis.hgetAll("${param}:blocked:domains")
             println("Route /topblocked called with ${call.parameters["date"]}")
-            var i = 0;
-            for ((k, v) in query.toList().sortedByDescending { (key, value) -> value.toInt() }.toMap()) {
-                topquery.put(k, v)
+            var i = 0
+            for ((k, v) in query.toList().sortedByDescending { (_, value) -> value.toInt() }.toMap()) {
+                topQuery[k] = v
                 i++
                 if (i == 30) {
                     break
                 }
             }
-            call.respond(topquery)
+            call.respond(topQuery)
         } else {
             println("Invalid /topblocked called with ${call.parameters["date"]}")
             call.respondText { "invalid request" }
         }
     }
     get("/graphingAPI/rtstats") {
-        var query = mutableMapOf<String, String>()
+        val query = mutableMapOf<String, String>()
         val redis = initRedis()
         query["Total Queries: "] = redis.hget("totals", "query")
         query["Total Clients: "] = redis.hlen("totals").toString()
@@ -133,8 +135,8 @@ fun Route.rtStatsGraphingAPI(){
 
 fun getLocationData(): MutableList<List<String?>> {
     val redis = initRedis()
-    var query = mutableMapOf<String,String>()
-    var ourLocationData = mutableListOf<List<String?>>()
+    val query: MutableMap<String, String>
+    val ourLocationData = mutableListOf<List<String?>>()
     query = redis.hgetAll("locationCodeTotals")
     val countryCodes = countryCode()
     for ((k,v) in query) {

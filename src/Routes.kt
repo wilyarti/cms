@@ -2,13 +2,6 @@
 // This is needed for authentication and sessions, which are stored on the server.
 package os3
 
-import API
-import AuthName
-import CommonRoutes
-import FormFields
-import MySession
-import adminAPI
-import dynamicPages
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.auth.principal
@@ -18,9 +11,7 @@ import io.ktor.routing.*
 import io.ktor.sessions.clear
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
-import kettlebellCompetition
 import kotlinx.html.*
-import rtStatsGraphingAPI
 
 internal fun Routing.homepageRoute() {
     /*authenticate(AuthName.SESSION, optional = true) {

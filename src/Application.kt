@@ -1,35 +1,26 @@
 package os3
 
-import AuthName
-import CommonRoutes
-import Cookies
-import FormFields
-import MySession
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.http.*
-import kotlinx.html.*
-import kotlinx.css.*
-import io.ktor.http.content.*
-import io.ktor.features.*
-import org.slf4j.event.*
-import io.ktor.gson.*
+
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.auth.*
+import io.ktor.features.*
+import io.ktor.gson.gson
+import io.ktor.http.content.resources
+import io.ktor.http.content.static
+import io.ktor.request.path
 import io.ktor.response.respondRedirect
 import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
-import kotlin.collections.set
+import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
+
 fun Application.module() {
     install(Compression) {
         gzip {
@@ -75,21 +66,6 @@ fun Application.module() {
     }
 }
 
-
-fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
-    style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
-    }
-}
-
-fun CommonAttributeGroupFacade.style(builder: CSSBuilder.() -> Unit) {
-    this.style = CSSBuilder().apply(builder).toString().trim()
-}
-
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
-}
-
 private fun Sessions.Configuration.configureAuthCookie() {
     cookie<MySession>(
         // We set a cookie by this name upon login.
@@ -133,13 +109,13 @@ private fun Authentication.Configuration.configureFormAuth() {
         validate { cred: UserPasswordCredential ->
             // Realistically you'd look up the user in a database or something here; this is just a toy example.
             // The values here will be whatever was submitted in the form.
-            val password = authUser(cred.name);
-            println("Username: ${cred.name} Password: ${cred.password} : ${password}")
+            val password = authUser(cred.name)
+            println("Username: ${cred.name} Password: ${cred.password} : $password")
             val userInfo = getUser(cred.name)
 
             if (password !== null && password == cred.password && userInfo !== null) {
                 println("Session validated....")
-                MySession(id = userInfo!!.id, username = userInfo!!.name, group = userInfo!!.group)
+                MySession(id = userInfo.id, username = userInfo.name, group = userInfo.group)
             } else {
                 println("Invalid login....")
                 null

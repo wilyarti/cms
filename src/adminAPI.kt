@@ -1,29 +1,30 @@
+package os3
+
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
-import io.ktor.auth.authenticate
 import io.ktor.features.origin
-import io.ktor.routing.Route
-import io.ktor.routing.get
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import os3.connectToDB
 
 
 fun Route.adminAPI() {
     post("/api/deletePage") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val deletedPage = call.receive<thisPage>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
-                val txID = Pages.deleteWhere { Pages.id eq deletedPage.id }
+                Pages.deleteWhere { Pages.id eq deletedPage.id }
             }
             call.respond(Status(success = true, errorMessage = ""))
         } catch (e: Throwable) {
@@ -32,14 +33,15 @@ fun Route.adminAPI() {
     }
     post("/api/deletePost") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
 
             val deletedPost = call.receive<thisPage>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                val txID = Posts.deleteWhere { Posts.id eq deletedPost.id }
+                Posts.deleteWhere { Posts.id eq deletedPost.id }
             }
             call.respond(Status(success = true, errorMessage = ""))
         } catch (e: Throwable) {
@@ -48,13 +50,14 @@ fun Route.adminAPI() {
     }
     post("/api/addPost") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val incomingPost = call.receive<thisPost>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                val txID = Posts.insert() {
+                Posts.insert() {
                     it[disabled] = false
                     it[parentID] = 0
                     it[priorityBit] = 255
@@ -80,13 +83,14 @@ fun Route.adminAPI() {
     }
     post("/api/addPage") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val incomingPage = call.receive<thisPage>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
-                val txID = Pages.insert() {
+                Pages.insert() {
                     it[disabled] = false
                     it[parentID] = 0
                     it[priorityBit] = 255
@@ -112,13 +116,15 @@ fun Route.adminAPI() {
     post("/api/addUser") {
         try {
             //TODO fix this
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val incomingUser = call.receive<ThisUser>()
-            val remoteHost: String = call.request.origin.remoteHost
+            call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
-                val txID = Users.insert() {
+                Users.insert() {
                     it[name] = incomingUser.name
                     it[group] = incomingUser.group
                     it[secondaryGroup] = incomingUser.secondaryGroup
@@ -133,13 +139,14 @@ fun Route.adminAPI() {
     }
     post("/api/updatePage") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val incomingPage = call.receive<thisPage>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
-                val txID = Pages.update({ Pages.id eq incomingPage.id }) {
+                Pages.update({ Pages.id eq incomingPage.id }) {
                     it[disabled] = false
                     it[parentID] = 0
                     it[priorityBit] = 255
@@ -164,13 +171,14 @@ fun Route.adminAPI() {
     }
     post("/api/updatePost") {
         try {
-            if (!validateAdmin(call)) throw (error("Prohibidado!"))
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
             val incomingPost = call.receive<thisPost>()
-            val remoteHost: String = call.request.origin.remoteHost
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                val txID = Posts.update({ Posts.id eq incomingPost.id }) {
+                Posts.update({ Posts.id eq incomingPost.id }) {
                     it[disabled] = false
                     it[parentID] = 0
                     it[priorityBit] = 255
@@ -218,7 +226,7 @@ fun validateAdmin(call: ApplicationCall): Boolean {
 
 fun getPages(): MutableList<thisPage> {
     connectToDB()
-    var returnedListOfPages = mutableListOf<thisPage>()
+    val returnedListOfPages = mutableListOf<thisPage>()
     transaction {
         SchemaUtils.create(Pages)
         for (page in Pages.selectAll()) {
@@ -248,11 +256,11 @@ fun getPages(): MutableList<thisPage> {
 
 fun getPosts(): MutableList<thisPost> {
     connectToDB()
-    var returnedListOfPosts = mutableListOf<thisPost>()
+    val returnedListOfPosts = mutableListOf<thisPost>()
     transaction {
         SchemaUtils.create(Posts)
         for (p in Posts.selectAll()) {
-            var currentPost = thisPost(
+            val currentPost = thisPost(
                 id = p[Posts.id],
                 disabled = p[Posts.disabled],
                 parentID = p[Posts.parentID],
@@ -279,7 +287,7 @@ fun getPosts(): MutableList<thisPost> {
 
 fun getAllPostsAndPages(): MutableList<completePage> {
     connectToDB()
-    var returnedPages = mutableListOf<completePage>()
+    val returnedPages = mutableListOf<completePage>()
     transaction {
         SchemaUtils.create(Pages, Posts)
         val allPosts = Posts.selectAll()
@@ -305,7 +313,7 @@ fun getAllPostsAndPages(): MutableList<completePage> {
             )
             for (p in allPosts) {
                 if (p[Posts.pageID] == page[Pages.id]) {
-                    var currentPost = thisPost(
+                    val currentPost = thisPost(
                         id = p[Posts.id],
                         disabled = p[Posts.disabled],
                         parentID = p[Posts.parentID],

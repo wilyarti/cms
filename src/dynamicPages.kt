@@ -1,14 +1,13 @@
 // Contains the routes for the Content Management System in the /home route.
+package os3
+
 import io.ktor.application.call
 import io.ktor.html.respondHtml
 import io.ktor.response.respondRedirect
-import kotlinx.html.*
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import io.netty.handler.codec.DateFormatter
-import org.joda.time.DateTime
+import kotlinx.html.*
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
 
 internal fun Route.dynamicPages() {
 
@@ -22,20 +21,20 @@ internal fun Route.dynamicPages() {
         var postRange = 1
         if (requestedPageNumber !== null) {
             try {
-                pageNumber = requestedPageNumber!!.toInt()
+                pageNumber = requestedPageNumber.toInt()
             } catch (error: Throwable) {
                 println(error)
             }
         }
         if (requestedPageRange !== null) {
             try {
-                postRange = requestedPageRange!!.toInt()
+                postRange = requestedPageRange.toInt()
             } catch (error: Throwable) {
                 println(error)
             }
         }
-        var pageData = getAllPostsAndPages()
-        println("pagenumber ${pageNumber} pageRange ${postRange}")
+        val pageData = getAllPostsAndPages()
+        println("pagenumber $pageNumber pageRange $postRange")
         call.respondHtml {
             head {
                 link(
@@ -98,13 +97,13 @@ internal fun Route.dynamicPages() {
                     if (page.id == pageNumber) {
                         navtype = "nav-item active"
                     }
-                    var html = """<li class='${navtype}'>
+                    val html = """<li class='${navtype}'>
                                 <a href="/home/${page.id}" class="nav-link"><span><i data-feather="${page.icon}"></i> ${page.name}</span></a>
                                 </li>
                             """
                     unsafe {
                         raw(
-                            """${html}"""
+                            html
                         )
                     }
                 }
@@ -114,15 +113,14 @@ internal fun Route.dynamicPages() {
                         """</ul></div></nav>"""
                     )
                 }
-                var postCount = 0
-                for (post in pageData[pageNumber - 1].posts.drop((postRange -1) * MAXPOSTSPERPAGE)) {
+                for ((postCount, post) in pageData[pageNumber - 1].posts.drop((postRange -1) * MAXPOSTSPERPAGE).withIndex()) {
                     if (postCount < MAXPOSTSPERPAGE) {
 
                         var timeString = " "
                         try {
-                            val m_ISO8601Local = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                            val mIso8601local = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                             //2019-10-07T01:27:20.840Z
-                            val thisTime = m_ISO8601Local.parseDateTime(post.createdTime)
+                            val thisTime = mIso8601local.parseDateTime(post.createdTime)
                             val dtfOut = DateTimeFormat.forPattern("MMMM dd, yyyy")
                             timeString = dtfOut.print(thisTime)
                         } catch (e: Throwable) {
@@ -146,13 +144,11 @@ internal fun Route.dynamicPages() {
                             )
                         }
                     }
-                    postCount++
                 }
                 nav {
                     attributes["aria-label"] = "Page navigation"
                     ul {
                         classes = setOf("pagination")
-                        var count = 0
                         var postIndex = 1
                         val posts = pageData[pageNumber - 1].posts
                         for (post in 1..posts.size step MAXPOSTSPERPAGE) {

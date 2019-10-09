@@ -1,8 +1,6 @@
 // Various functions for the web apps.
 package os3
 
-import ThisUser
-import Users
 import net.opens3.db_password
 import net.opens3.db_username
 import org.jetbrains.exposed.sql.Database
@@ -25,7 +23,7 @@ fun authUser(thisName: String): String? {
     returnedPassword = null
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select({ Users.name eq thisName })) {
+        for (user in Users.select { Users.name eq thisName }) {
             val returnedUser = ThisUser(
                 id = user[Users.id],
                 name = user[Users.name],
@@ -45,7 +43,7 @@ fun getUser(thisName: String): ThisUser? {
     returnedUserList = null
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select({ Users.name eq thisName })) {
+        for (user in Users.select { Users.name eq thisName }) {
             val returnedUser = ThisUser(
                 id = user[Users.id],
                 name = user[Users.name],

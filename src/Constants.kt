@@ -1,4 +1,6 @@
 // Contains all the data classes, SQL tables and JSON data classes.
+package os3
+
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
 
@@ -6,49 +8,49 @@ const val MAXPOSTSPERPAGE  =5
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 
 object Pages : Table() {
-    val id = Pages.integer("id").autoIncrement().primaryKey() // main id
-    val disabled = Pages.bool("disabled")
-    val parentID = Pages.integer("parentID") // allow tree structure (stipulate parent)
-    val priorityBit = Pages.integer("priorityBit") // to re-order pages and sticky bit
-    val name = Pages.varchar("name", length = 150) // page name
-    val icon = Pages.varchar("icon", length = 150)  // feather icon
-    val pageID = Pages.integer("pageID")
-    val author = Pages.varchar("author", length = 150)
-    val group = Pages.varchar("group", length = 150)
-    val createdTime = Pages.varchar("createdTime", length = 150) // date, time and timezone
-    val countryOfOrigin = Pages.varchar("countryOfOrigin", length = 8)
-    val language = Pages.varchar("language", length = 150)
-    val executionScript = Pages.text("executionScript")
-    val metadata = Pages.text("metadata")
-    val type = Pages.integer("type") // 00  = page
-    val likes = Pages.integer("likes")
+    val id = integer("id").autoIncrement().primaryKey() // main id
+    val disabled = bool("disabled")
+    val parentID = integer("parentID") // allow tree structure (stipulate parent)
+    val priorityBit = integer("priorityBit") // to re-order pages and sticky bit
+    val name = varchar("name", length = 150) // page name
+    val icon = varchar("icon", length = 150)  // feather icon
+    val pageID = integer("pageID")
+    val author = varchar("author", length = 150)
+    val group = varchar("group", length = 150)
+    val createdTime = varchar("createdTime", length = 150) // date, time and timezone
+    val countryOfOrigin = varchar("countryOfOrigin", length = 8)
+    val language = varchar("language", length = 150)
+    val executionScript = text("executionScript")
+    val metadata = text("metadata")
+    val type = integer("type") // 00  = page
+    val likes = integer("likes")
 }
 object Users : Table() {
-    val id = Users.integer("id").autoIncrement().primaryKey()
-    val name = Users.varchar("name", length = 150)
-    val group = Users.varchar("group", length = 150)
-    val secondaryGroup = Users.varchar("secondaryGroup", length = 150)
-    val password = Users.varchar("password", length = 150)
-    val metadata = Users.text("metadata")
+    val id = integer("id").autoIncrement().primaryKey()
+    val name = varchar("name", length = 150)
+    val group = varchar("group", length = 150)
+    val secondaryGroup = varchar("secondaryGroup", length = 150)
+    val password = varchar("password", length = 150)
+    val metadata = text("metadata")
 }
 object Posts : Table() {
-    val id = Posts.integer("id").autoIncrement().primaryKey() // main id
-    val disabled = Posts.bool("disabled")
-    val parentID = Posts.integer("parentID") // allow tree structure (stipulate parent)
-    val priorityBit = Posts.integer("priorityBit") // to re-order pages and sticky bit
-    val name = Posts.varchar("name", length = 150) // page name
-    val icon = Posts.varchar("icon", length = 150)  // feather icon
-    val pageID = Posts.integer("pageID")
-    val author = Posts.varchar("author", length = 150)
-    val group = Posts.varchar("group", length = 150)
-    val createdTime = Posts.varchar("postedTime", length = 150) // date, time and timezone
-    val countryOfOrigin = Posts.varchar("countryOfOrigin", length = 8)
-    val language = Posts.varchar("language", length = 150)
+    val id = integer("id").autoIncrement().primaryKey() // main id
+    val disabled = bool("disabled")
+    val parentID = integer("parentID") // allow tree structure (stipulate parent)
+    val priorityBit = integer("priorityBit") // to re-order pages and sticky bit
+    val name = varchar("name", length = 150) // page name
+    val icon = varchar("icon", length = 150)  // feather icon
+    val pageID = integer("pageID")
+    val author = varchar("author", length = 150)
+    val group = varchar("group", length = 150)
+    val createdTime = varchar("postedTime", length = 150) // date, time and timezone
+    val countryOfOrigin = varchar("countryOfOrigin", length = 8)
+    val language = varchar("language", length = 150)
     val executionScript = Posts.text("executionScript")
     val contents = Posts.text("contents")
     val metadata = Posts.text("metadata")
-    val type = Posts.integer("type") // 00  = page
-    val likes = Posts.integer("likes")
+    val type = integer("type") // 00  = page
+    val likes = integer("likes")
 }
 
 data class thisPost(

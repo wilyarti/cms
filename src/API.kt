@@ -1,11 +1,10 @@
+package os3
+
 import io.ktor.application.call
-import io.ktor.features.origin
-import io.ktor.html.respondHtml
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import kotlinx.css.body
 
 fun Route.API() {
     post("/getJSON") {
