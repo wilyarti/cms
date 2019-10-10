@@ -107,12 +107,9 @@ private fun Authentication.Configuration.configureFormAuth() {
             }
         }
         validate { cred: UserPasswordCredential ->
-            // Realistically you'd look up the user in a database or something here; this is just a toy example.
-            // The values here will be whatever was submitted in the form.
             val password = authUser(cred.name)
             println("Username: ${cred.name} Password: ${cred.password} : $password")
             val userInfo = getUser(cred.name)
-
             if (password !== null && password == cred.password && userInfo !== null) {
                 println("Session validated....")
                 MySession(id = userInfo.id, username = userInfo.name, group = userInfo.group)

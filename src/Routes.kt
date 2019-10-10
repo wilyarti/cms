@@ -125,7 +125,11 @@ internal fun Routing.loginRoute() {
                 val principal = call.principal<MySession>()!!
                 // Set the cookie
                 call.sessions.set(principal)
-                call.respondRedirect(CommonRoutes.PROFILE)
+                if (principal.group == "wheel") {
+                    call.respondRedirect(CommonRoutes.ADMIN)
+                } else {
+                    call.respondRedirect(CommonRoutes.PROFILE)
+                }
             }
         }
     }

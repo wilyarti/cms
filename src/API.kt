@@ -8,7 +8,7 @@ import io.ktor.routing.post
 
 fun Route.API() {
     post("/getJSON") {
-        val thisReq = call.receive<jsonReq>()
+        val thisReq = call.receive<JsonReq>()
         val req = khttp.get(thisReq.url)
         println(thisReq.url)
         if (req.statusCode == 200) {

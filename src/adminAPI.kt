@@ -20,7 +20,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val deletedPage = call.receive<thisPage>()
+            val deletedPage = call.receive<ThisPage>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
@@ -37,7 +37,7 @@ fun Route.adminAPI() {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
 
-            val deletedPost = call.receive<thisPage>()
+            val deletedPost = call.receive<ThisPage>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
@@ -53,7 +53,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingPost = call.receive<thisPost>()
+            val incomingPost = call.receive<ThisPost>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
@@ -86,7 +86,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingPage = call.receive<thisPage>()
+            val incomingPage = call.receive<ThisPage>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
@@ -142,7 +142,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingPage = call.receive<thisPage>()
+            val incomingPage = call.receive<ThisPage>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
@@ -174,7 +174,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingPost = call.receive<thisPost>()
+            val incomingPost = call.receive<ThisPost>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
@@ -224,13 +224,13 @@ fun validateAdmin(call: ApplicationCall): Boolean {
     return thisSession?.group == "wheel"
 }
 
-fun getPages(): MutableList<thisPage> {
+fun getPages(): MutableList<ThisPage> {
     connectToDB()
-    val returnedListOfPages = mutableListOf<thisPage>()
+    val returnedListOfPages = mutableListOf<ThisPage>()
     transaction {
         SchemaUtils.create(Pages)
         for (page in Pages.selectAll()) {
-            val currentPage = thisPage(
+            val currentPage = ThisPage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
                 parentID = page[Pages.parentID],
@@ -254,13 +254,13 @@ fun getPages(): MutableList<thisPage> {
     return returnedListOfPages
 }
 
-fun getPosts(): MutableList<thisPost> {
+fun getPosts(): MutableList<ThisPost> {
     connectToDB()
-    val returnedListOfPosts = mutableListOf<thisPost>()
+    val returnedListOfPosts = mutableListOf<ThisPost>()
     transaction {
         SchemaUtils.create(Posts)
         for (p in Posts.selectAll()) {
-            val currentPost = thisPost(
+            val currentPost = ThisPost(
                 id = p[Posts.id],
                 disabled = p[Posts.disabled],
                 parentID = p[Posts.parentID],
@@ -285,14 +285,14 @@ fun getPosts(): MutableList<thisPost> {
     return returnedListOfPosts
 }
 
-fun getAllPostsAndPages(): MutableList<completePage> {
+fun getAllPostsAndPages(): MutableList<CompletePage> {
     connectToDB()
-    val returnedPages = mutableListOf<completePage>()
+    val returnedPages = mutableListOf<CompletePage>()
     transaction {
         SchemaUtils.create(Pages, Posts)
         val allPosts = Posts.selectAll()
         for (page in Pages.selectAll()) {
-            val currentPage = completePage(
+            val currentPage = CompletePage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
                 parentID = page[Pages.parentID],
@@ -309,11 +309,11 @@ fun getAllPostsAndPages(): MutableList<completePage> {
                 metadata = page[Pages.metadata].toString(),
                 type = page[Pages.type],
                 likes = page[Pages.likes],
-                posts = mutableListOf<thisPost>()
+                posts = mutableListOf<ThisPost>()
             )
             for (p in allPosts) {
                 if (p[Posts.pageID] == page[Pages.id]) {
-                    val currentPost = thisPost(
+                    val currentPost = ThisPost(
                         id = p[Posts.id],
                         disabled = p[Posts.disabled],
                         parentID = p[Posts.parentID],

@@ -46,14 +46,14 @@ object Posts : Table() {
     val createdTime = varchar("postedTime", length = 150) // date, time and timezone
     val countryOfOrigin = varchar("countryOfOrigin", length = 8)
     val language = varchar("language", length = 150)
-    val executionScript = Posts.text("executionScript")
-    val contents = Posts.text("contents")
-    val metadata = Posts.text("metadata")
+    val executionScript = text("executionScript")
+    val contents = text("contents")
+    val metadata = text("metadata")
     val type = integer("type") // 00  = page
     val likes = integer("likes")
 }
 
-data class thisPost(
+data class ThisPost(
     val id: Int,
     val disabled: Boolean,
     val parentID: Int,
@@ -73,7 +73,7 @@ data class thisPost(
     val likes: Int
 )
 
-data class thisPage(
+data class ThisPage(
     val id: Int,
     val disabled: Boolean,
     val parentID: Int,
@@ -92,7 +92,7 @@ data class thisPage(
     val likes: Int
 )
 
-data class completePage(
+data class CompletePage(
     val id: Int,
     val disabled: Boolean,
     val parentID: Int,
@@ -109,10 +109,10 @@ data class completePage(
     val metadata: String,
     val type: Int,
     val likes: Int,
-    val posts: MutableList<thisPost>
+    val posts: MutableList<ThisPost>
 )
 
-data class pageList(
+data class PageList(
     val id: Int,
     val name: String,
     val icon: String
@@ -122,7 +122,7 @@ data class Status (
     val success: Boolean,
     val errorMessage: String
 )
-data class jsonReq(
+data class JsonReq(
     val url: String
 )
 
