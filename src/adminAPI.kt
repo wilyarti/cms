@@ -48,6 +48,23 @@ fun Route.adminAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
+    post("/api/deleteUser") {
+        try {
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
+
+            val deletedUser = call.receive<UserID>()
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Users)
+                Users.deleteWhere { Users.id eq deletedUser.id }
+            }
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
     post("/api/addPost") {
         try {
             if (!validateAdmin(call)) {
@@ -116,6 +133,7 @@ fun Route.adminAPI() {
     post("/api/addUser") {
         try {
             //TODO fix this
+            //TODO fix what?
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
@@ -124,7 +142,7 @@ fun Route.adminAPI() {
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
-                Users.insert() {
+                Users.insert {
                     it[name] = incomingUser.name
                     it[group] = incomingUser.group
                     it[secondaryGroup] = incomingUser.secondaryGroup
@@ -215,6 +233,10 @@ fun Route.adminAPI() {
         call.respond(getPages())
     }
 
+    get("/api/getUsers") {
+        call.respond(getUsers())
+    }
+
 }
 
 
@@ -283,6 +305,26 @@ fun getPosts(): MutableList<ThisPost> {
         }
     }
     return returnedListOfPosts
+}
+
+fun getUsers(): MutableList<ThisUser> {
+    connectToDB()
+    val returnedListOfUsers = mutableListOf<ThisUser>()
+    transaction {
+        SchemaUtils.create(Users)
+        for (p in Users.selectAll()) {
+            val currentUser = ThisUser(
+                id = p[Users.id],
+                name = p[Users.name],
+                group = p[Users.group],
+                secondaryGroup = p[Users.secondaryGroup],
+                password = "",
+                metadata = p[Users.metadata]
+            )
+            returnedListOfUsers.add(currentUser)
+        }
+    }
+    return returnedListOfUsers
 }
 
 fun getAllPostsAndPages(): MutableList<CompletePage> {

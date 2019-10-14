@@ -74,5 +74,3 @@ shadowJar {
         attributes 'Main-Class': mainClassName
     }
 }
-
-def klockVersion = "1.7.0"
