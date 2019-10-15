@@ -4,7 +4,7 @@ package os3
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
 
-const val MAXPOSTSPERPAGE  =5
+const val MAXPOSTSPERPAGE  = 5
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 
 object Pages : Table() {
@@ -27,7 +27,10 @@ object Pages : Table() {
 }
 object Users : Table() {
     val id = integer("id").autoIncrement().primaryKey()
+    val disabled = bool("disabled")
     val name = varchar("name", length = 150)
+    val email = varchar("email", length = 150)
+    val mobile = varchar("mobile", length = 150)
     val group = varchar("group", length = 150)
     val secondaryGroup = varchar("secondaryGroup", length = 150)
     val password = varchar("password", length = 150)
@@ -112,12 +115,6 @@ data class CompletePage(
     val posts: MutableList<ThisPost>
 )
 
-data class PageList(
-    val id: Int,
-    val name: String,
-    val icon: String
-)
-
 data class Status (
     val success: Boolean,
     val errorMessage: String
@@ -131,12 +128,16 @@ data class Success(
 )
 data class ThisUser(
     val id: Int,
+    val disabled: Boolean,
     val name: String,
+    val email: String,
+    val mobile: String,
     val group: String,
     val secondaryGroup: String,
     val password: String,
     val metadata: String
 )
+
 data class UserID(
     val id: Int,
     val name: String

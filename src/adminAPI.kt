@@ -53,12 +53,13 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-
-            val deletedUser = call.receive<UserID>()
+            val incomingUser = call.receive<ThisUser>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
-                Users.deleteWhere { Users.id eq deletedUser.id }
+                Users.update({ Users.id eq incomingUser.id }) {
+                    it[disabled] = true
+                }
             }
             call.respond(Status(success = true, errorMessage = ""))
         } catch (e: Throwable) {
@@ -132,8 +133,7 @@ fun Route.adminAPI() {
     }
     post("/api/addUser") {
         try {
-            //TODO fix this
-            //TODO fix what?
+            //TODO implement missing fields
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
@@ -144,6 +144,9 @@ fun Route.adminAPI() {
                 SchemaUtils.create(Users)
                 Users.insert {
                     it[name] = incomingUser.name
+                    it[disabled] = false
+                    it[email] = "foo@bar.com"
+                    it[mobile] = "1234"
                     it[group] = incomingUser.group
                     it[secondaryGroup] = incomingUser.secondaryGroup
                     it[password] = incomingUser.password
@@ -315,7 +318,10 @@ fun getUsers(): MutableList<ThisUser> {
         for (p in Users.selectAll()) {
             val currentUser = ThisUser(
                 id = p[Users.id],
+                disabled = true,
                 name = p[Users.name],
+                mobile = p[Users.mobile],
+                email = p[Users.email],
                 group = p[Users.group],
                 secondaryGroup = p[Users.secondaryGroup],
                 password = "",

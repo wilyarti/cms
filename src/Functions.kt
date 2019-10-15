@@ -17,16 +17,21 @@ fun connectToDB(): Unit {
         password = db_password
     )
 }
+
 fun authUser(thisName: String): String? {
     connectToDB()
-    var returnedPassword : String?
+    var returnedPassword: String?
     returnedPassword = null
     transaction {
         SchemaUtils.create(Users)
         for (user in Users.select { Users.name eq thisName }) {
+            //TODO add missing fields.
             val returnedUser = ThisUser(
                 id = user[Users.id],
+                disabled = false,
                 name = user[Users.name],
+                mobile = "1234",
+                email = "foo@bar.com",
                 group = user[Users.group],
                 secondaryGroup = user[Users.secondaryGroup],
                 metadata = user[Users.metadata],
@@ -37,6 +42,7 @@ fun authUser(thisName: String): String? {
     }
     return returnedPassword
 }
+
 fun getUser(thisName: String): ThisUser? {
     connectToDB()
     var returnedUserList: ThisUser?
@@ -46,6 +52,9 @@ fun getUser(thisName: String): ThisUser? {
         for (user in Users.select { Users.name eq thisName }) {
             val returnedUser = ThisUser(
                 id = user[Users.id],
+                disabled = user[Users.disabled],
+                mobile = user[Users.mobile],
+                email = user[Users.email],
                 name = user[Users.name],
                 group = user[Users.group],
                 secondaryGroup = user[Users.secondaryGroup],
