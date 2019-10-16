@@ -131,6 +131,7 @@ fun Route.adminAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
+
     post("/api/addUser") {
         try {
             //TODO implement missing fields
@@ -143,14 +144,22 @@ fun Route.adminAPI() {
             transaction {
                 SchemaUtils.create(Users)
                 Users.insert {
-                    it[name] = incomingUser.name
-                    it[disabled] = false
-                    it[email] = "foo@bar.com"
-                    it[mobile] = "1234"
+                    it[disabled] = incomingUser.disabled
+                    it[createdTime] = incomingUser.createdTime
+                    it[username] = incomingUser.username
+                    it[firstName] = incomingUser.firstName
+                    it[lastName] = incomingUser.lastName
+                    it[streetAddress] = incomingUser.streetAddress
+                    it[postCode] = incomingUser.postCode
+                    it[country] = incomingUser.country
+                    it[countryCode] = incomingUser.countryCode
+                    it[email] = incomingUser.email
+                    it[mobile] = incomingUser.mobile
+                    it[areaCode] = incomingUser.areaCode
                     it[group] = incomingUser.group
                     it[secondaryGroup] = incomingUser.secondaryGroup
+                    it[metadata] = incomingUser.metadata
                     it[password] = incomingUser.password
-                    it[metadata] = "Add me."
                 }
             }
             call.respond(Status(success = true, errorMessage = ""))
@@ -237,9 +246,17 @@ fun Route.adminAPI() {
     }
 
     get("/api/getUsers") {
-        call.respond(getUsers())
+        try {
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            } else {
+                call.respond(getUsers())
+            }
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
     }
-
 }
 
 
@@ -315,17 +332,25 @@ fun getUsers(): MutableList<ThisUser> {
     val returnedListOfUsers = mutableListOf<ThisUser>()
     transaction {
         SchemaUtils.create(Users)
-        for (p in Users.selectAll()) {
+        for (user in Users.selectAll()) {
             val currentUser = ThisUser(
-                id = p[Users.id],
-                disabled = true,
-                name = p[Users.name],
-                mobile = p[Users.mobile],
-                email = p[Users.email],
-                group = p[Users.group],
-                secondaryGroup = p[Users.secondaryGroup],
-                password = "",
-                metadata = p[Users.metadata]
+                id = user[Users.id],
+                disabled = user[Users.disabled],
+                createdTime = user[Users.createdTime],
+                username = user[Users.username],
+                firstName = user[Users.firstName],
+                lastName = user[Users.lastName],
+                streetAddress = user[Users.streetAddress],
+                postCode = user[Users.postCode],
+                country = user[Users.country],
+                countryCode = user[Users.countryCode],
+                email = user[Users.email],
+                mobile = user[Users.mobile],
+                areaCode = user[Users.areaCode],
+                group = user[Users.group],
+                secondaryGroup = user[Users.secondaryGroup],
+                metadata = user[Users.metadata],
+                password = user[Users.password]
             )
             returnedListOfUsers.add(currentUser)
         }

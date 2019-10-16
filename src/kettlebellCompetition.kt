@@ -65,10 +65,10 @@ fun getMyID(userName: String): MyID {
     val activeID = MyID(id = 0, active = false)
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select { Users.name eq userName }) {
+        for (user in Users.select { Users.username eq userName }) {
             val currentUser = UserID(
                 id = user[Users.id],
-                name = user[Users.name]
+                name = user[Users.username]
             )
             activeID.id = currentUser.id
             activeID.active = true
@@ -82,10 +82,10 @@ fun getUserList(): MutableList<UserID> {
     val returnedListOfUsers = mutableListOf<UserID>()
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.selectAll()) {
+        for (user in Users.select{Users.disabled eq false}) {
             val currentUser = UserID(
                 id = user[Users.id],
-                name = user[Users.name]
+                name = user[Users.username]
             )
             returnedListOfUsers.add(currentUser)
         }

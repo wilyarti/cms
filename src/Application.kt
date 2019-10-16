@@ -107,12 +107,11 @@ private fun Authentication.Configuration.configureFormAuth() {
             }
         }
         validate { cred: UserPasswordCredential ->
-            val password = authUser(cred.name)
-            println("Username: ${cred.name} Password: ${cred.password} : $password")
-            val userInfo = getUser(cred.name)
-            if (password !== null && password == cred.password && userInfo !== null) {
+            val userInfo = authUser(cred.name)
+            println("Username: ${cred.name} Password: ${cred.password} : ${userInfo?.password}")
+            if (userInfo?.password !== null && userInfo.password == cred.password && userInfo !== null) {
                 println("Session validated....")
-                MySession(id = userInfo.id, username = userInfo.name, group = userInfo.group)
+                MySession(id = userInfo.id, username = userInfo.username, group = userInfo.group)
             } else {
                 println("Invalid login....")
                 null

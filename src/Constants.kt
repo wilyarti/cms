@@ -28,9 +28,17 @@ object Pages : Table() {
 object Users : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val disabled = bool("disabled")
-    val name = varchar("name", length = 150)
+    val createdTime = varchar("createdTime", 150)
+    val username = varchar("name", length = 32)
+    val firstName = varchar("firstName", 50)
+    val lastName = varchar("lastName", 50)
+    val streetAddress = varchar("streetAddress", 150)
+    val postCode = varchar("postCode", 150)
+    val country = varchar("country", 50)
+    val countryCode = varchar("countryCode", 3)
     val email = varchar("email", length = 150)
     val mobile = varchar("mobile", length = 150)
+    val areaCode = varchar("areaCode", 8)
     val group = varchar("group", length = 150)
     val secondaryGroup = varchar("secondaryGroup", length = 150)
     val password = varchar("password", length = 150)
@@ -126,16 +134,50 @@ data class JsonReq(
 data class Success(
     val success: Boolean
 )
+/*
+val id = integer("id").autoIncrement().primaryKey()
+    val disabled = bool("disabled")
+    val createdTime = varchar("createdTime", 150)
+    val username = varchar("name", length = 32)
+    val firstName = varchar("firstName", 50)
+    val lastName = varchar("lastName", 50)
+    val streetAddress = varchar("streetAddress", 150)
+    val postCode = varchar("postCode", 150)
+    val country = varchar("country", 50)
+    val countryCode = varchar("countryCode", 3)
+    val email = varchar("email", length = 150)
+    val mobile = varchar("mobile", length = 150)
+    val areaCode = integer("areaCode")
+    val group = varchar("group", length = 150)
+    val secondaryGroup = varchar("secondaryGroup", length = 150)
+    val password = varchar("password", length = 150)
+    val metadata = text("metadata")
+ */
 data class ThisUser(
     val id: Int,
     val disabled: Boolean,
-    val name: String,
+    val createdTime: String,
+    val username: String,
+    val firstName: String,
+    val lastName: String,
+    val streetAddress: String,
+    val postCode: String,
+    val country: String,
+    val countryCode: String,
     val email: String,
     val mobile: String,
+    val areaCode: String,
     val group: String,
     val secondaryGroup: String,
     val password: String,
     val metadata: String
+)
+
+data class AuthUser(
+    val id: Int,
+    val username: String,
+    val group: String,
+    val password: String
 )
 
 data class UserID(

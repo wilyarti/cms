@@ -18,47 +18,17 @@ fun connectToDB(): Unit {
     )
 }
 
-fun authUser(thisName: String): String? {
+fun authUser(thisName: String): AuthUser? {
     connectToDB()
-    var returnedPassword: String?
-    returnedPassword = null
-    transaction {
-        SchemaUtils.create(Users)
-        for (user in Users.select { Users.name eq thisName }) {
-            //TODO add missing fields.
-            val returnedUser = ThisUser(
-                id = user[Users.id],
-                disabled = false,
-                name = user[Users.name],
-                mobile = "1234",
-                email = "foo@bar.com",
-                group = user[Users.group],
-                secondaryGroup = user[Users.secondaryGroup],
-                metadata = user[Users.metadata],
-                password = user[Users.password]
-            )
-            returnedPassword = returnedUser.password
-        }
-    }
-    return returnedPassword
-}
-
-fun getUser(thisName: String): ThisUser? {
-    connectToDB()
-    var returnedUserList: ThisUser?
+    var returnedUserList: AuthUser?
     returnedUserList = null
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select { Users.name eq thisName }) {
-            val returnedUser = ThisUser(
+        for (user in Users.select { Users.username eq thisName; Users.disabled eq false}) {
+            val returnedUser = AuthUser(
                 id = user[Users.id],
-                disabled = user[Users.disabled],
-                mobile = user[Users.mobile],
-                email = user[Users.email],
-                name = user[Users.name],
+                username = user[Users.username],
                 group = user[Users.group],
-                secondaryGroup = user[Users.secondaryGroup],
-                metadata = user[Users.metadata],
                 password = user[Users.password]
             )
             returnedUserList = returnedUser
