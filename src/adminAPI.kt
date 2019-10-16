@@ -234,27 +234,34 @@ fun Route.adminAPI() {
     }
 
     get("/api/getAllPostsAndPages") {
-        call.respond(getAllPostsAndPages())
+        if (validateAdmin(call)) {
+            call.respond(getAllPostsAndPages())
+        } else {
+            call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
+        }
     }
 
     get("/api/getPosts") {
-        call.respond(getPosts())
+        if (validateAdmin(call)) {
+            call.respond(getPosts())
+        } else {
+            call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
+        }
     }
 
     get("/api/getPages") {
-        call.respond(getPages())
+        if (validateAdmin(call)) {
+            call.respond(getPages())
+        } else {
+            call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
+        }
     }
 
     get("/api/getUsers") {
-        try {
-            if (!validateAdmin(call)) {
-                Status(success = true, errorMessage = "Error! Prohibited.")
-            } else {
-                call.respond(getUsers())
-            }
-            call.respond(Status(success = true, errorMessage = ""))
-        } catch (e: Throwable) {
-            call.respond(Status(success = false, errorMessage = e.toString()))
+        if (validateAdmin(call)) {
+            call.respond(getUsers())
+        } else {
+            call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
 }

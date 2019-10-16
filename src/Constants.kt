@@ -207,7 +207,7 @@ object CommonRoutes {
     const val LOGIN = "/login"
     const val LOGOUT = "/logout"
     const val PROFILE = "/profile"
-    const val ADMIN = "/static/admin.html"
+    const val ADMIN = "/admin.html"
 }
 
 object Cookies {

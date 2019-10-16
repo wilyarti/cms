@@ -93,11 +93,11 @@ internal fun Routing.loginRoute() {
                             }
                         }
                         textInput(name = FormFields.USERNAME) {
-                            placeholder = "user)"
+                            placeholder = "Username:"
                         }
                         br
                         passwordInput(name = FormFields.PASSWORD) {
-                            placeholder = "password"
+                            placeholder = "Password:"
                         }
                         br
                         submitInput {
