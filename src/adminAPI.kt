@@ -76,7 +76,7 @@ fun Route.adminAPI() {
             val creatingUser = getThisUser(thisSession?.id);
             val incomingPost = call.receive<ThisPost>()
             if (creatingUser === null) {
-                throw(error("ERROR: User ${incomingPost.name} does not exit in database."))
+                throw(error("ERROR: User ${thisSession?.username} does not exit in database."))
             }
             connectToDB()
             transaction {
