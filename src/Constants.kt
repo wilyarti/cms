@@ -3,123 +3,167 @@ package os3
 
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
+import java.math.BigInteger
 
 const val MAXPOSTSPERPAGE  = 5
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 
+/** I made the decision to introduce NULLABLE rows into the SQL database.
+ * The reason being is to be able to expand the functionality of the CMS system. In order to expand easily it will be
+ * necessary to search for rows by type "NULL".
+ * Also it makes it easy to just enter the type as NULL until the functionality of the CMS is expanded.
+ *
+ * I contemplated just inserting an empty string into the empty rows, but it is advantageous to be able to search by
+ * NULL type rather than having to keep a convention for empty rows.
+ *
+ * I hope I do not regret this decision, as it will require me to fill the code with NULL safe calls.
+ */
+object Groups: Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val groupName = varchar("groupName", length = 150) // group name
+}
+
+object Group: Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val groupID = integer("groupID") // Groups.id field
+    val userID = integer("userID") // Users.id field
+}
 object Pages : Table() {
+    // NOT NULLABLE entries
+    val id = integer("id").autoIncrement().primaryKey() // main id
+    val disabled = bool("disabled") // Do not delete pages. Just disable them.
+    val name = varchar("name", length = 150) // page name
+    val icon = varchar("icon", length = 150)  // feather icon
+    val pageID = integer("pageID") // to enable sub pages.
+    val author = varchar("author", length = 150)
+    val createdTime = varchar("postedTime", length = 150) // date and time
+    val timeZone = varchar("timeZone", 100) // timezone
+    // NULLABLE entries below
+    val parentID = integer("parentID").nullable() // allow tree structure (stipulate parent)
+    val priorityBit = integer("priorityBit").nullable() // to re-order pages/posts and sticky bit
+    val group = varchar("group", length = 150).nullable()
+    val countryOfOrigin = varchar("countryOfOrigin", length = 8).nullable()
+    val language = varchar("language", length = 150).nullable()
+    val executionScript = text("executionScript").nullable()
+    val metadata = text("metadata").nullable()
+    val type = integer("type").nullable()
+    val likes = integer("likes").nullable()
+}
+object Posts : Table() {
+    // NOT NULLABLE entries
     val id = integer("id").autoIncrement().primaryKey() // main id
     val disabled = bool("disabled")
-    val parentID = integer("parentID") // allow tree structure (stipulate parent)
-    val priorityBit = integer("priorityBit") // to re-order pages and sticky bit
     val name = varchar("name", length = 150) // page name
     val icon = varchar("icon", length = 150)  // feather icon
     val pageID = integer("pageID")
     val author = varchar("author", length = 150)
-    val group = varchar("group", length = 150)
-    val createdTime = varchar("createdTime", length = 150) // date, time and timezone
-    val countryOfOrigin = varchar("countryOfOrigin", length = 8)
-    val language = varchar("language", length = 150)
-    val executionScript = text("executionScript")
-    val metadata = text("metadata")
-    val type = integer("type") // 00  = page
-    val likes = integer("likes")
+    val createdTime = varchar("postedTime", length = 150) // date and time
+    val timeZone = varchar("timeZone", 100) // timezone
+    val contents = text("contents")
+    // NULLABLE entries below
+    val parentID = integer("parentID").nullable() // allow tree structure (stipulate parent)
+    val priorityBit = integer("priorityBit").nullable() // to re-order pages and sticky bit
+    val group = varchar("group", length = 150).nullable()
+    val countryOfOrigin = varchar("countryOfOrigin", length = 8).nullable()
+    val language = varchar("language", length = 150).nullable()
+    val executionScript = text("executionScript").nullable()
+    val metadata = text("metadata").nullable()
+    val type = integer("type").nullable()
+    val likes = integer("likes").nullable()
 }
+
 object Users : Table() {
+    // NOT NULLABLE entries
     val id = integer("id").autoIncrement().primaryKey()
     val disabled = bool("disabled")
     val createdTime = varchar("createdTime", 150)
-    val username = varchar("name", length = 32)
-    val firstName = varchar("firstName", 50)
-    val lastName = varchar("lastName", 50)
-    val streetAddress = varchar("streetAddress", 150)
-    val postCode = varchar("postCode", 150)
-    val country = varchar("country", 50)
-    val countryCode = varchar("countryCode", 3)
-    val email = varchar("email", length = 150)
-    val mobile = varchar("mobile", length = 150)
-    val areaCode = varchar("areaCode", 8)
     val group = varchar("group", length = 150)
-    val secondaryGroup = varchar("secondaryGroup", length = 150)
     val password = varchar("password", length = 150)
-    val metadata = text("metadata")
-}
-object Posts : Table() {
-    val id = integer("id").autoIncrement().primaryKey() // main id
-    val disabled = bool("disabled")
-    val parentID = integer("parentID") // allow tree structure (stipulate parent)
-    val priorityBit = integer("priorityBit") // to re-order pages and sticky bit
-    val name = varchar("name", length = 150) // page name
-    val icon = varchar("icon", length = 150)  // feather icon
-    val pageID = integer("pageID")
-    val author = varchar("author", length = 150)
-    val group = varchar("group", length = 150)
-    val createdTime = varchar("postedTime", length = 150) // date, time and timezone
-    val countryOfOrigin = varchar("countryOfOrigin", length = 8)
-    val language = varchar("language", length = 150)
-    val executionScript = text("executionScript")
-    val contents = text("contents")
-    val metadata = text("metadata")
-    val type = integer("type") // 00  = page
-    val likes = integer("likes")
+    val passwordSalt = varchar("passwordSalt", length = 150)
+    val username = varchar("username", length = 32)
+
+    // NULLABLE entries
+    val firstName = varchar("firstName", 50).nullable()
+    val lastName = varchar("lastName", 50).nullable()
+    val streetAddress = varchar("streetAddress", 150).nullable()
+    val postCode = varchar("postCode", 150).nullable()
+    val state = varchar("state", 16).nullable()
+    val country = varchar("country", 50).nullable()
+    val countryCode = varchar("countryCode", 3).nullable()
+    val language = varchar("language", length = 150).nullable()
+    val email = varchar("email", length = 150).nullable()
+    val areaCode = varchar("areaCode", 8).nullable()
+    val mobile = varchar("mobile", length = 150).nullable()
+    val secondaryGroup = integer("secondaryGroup").nullable()
+    val metadata = text("metadata").nullable()
 }
 
+
 data class ThisPost(
-    val id: Int,
+    // NOT NULLABLE entries
+    val id: Int, // main id
     val disabled: Boolean,
-    val parentID: Int,
-    val priorityBit: Int,
-    val name: String,
-    val icon: String,
+    val name: String, // page name
+    val icon: String, // feather icon
     val pageID: Int,
     val author: String,
-    val group: String,
-    val createdTime: String,
-    val countryOfOrigin: String,
-    val language: String,
-    val executionScript: String,
+    val createdTime: String,// date and time
+    val timeZone: String, // timezone
     val contents: String,
-    val metadata: String,
-    val type: Int,
-    val likes: Int
+    // NULLABLE entries below
+    val parentID: Int?, // allow tree structure (stipulate parent)
+    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val group: String?,
+    val countryOfOrigin: String?,
+    val language: String?,
+    val executionScript: String?,
+    val metadata: String?,
+    val type: Int?,
+    val likes: Int?
 )
 
 data class ThisPage(
-    val id: Int,
+    // NOT NULLABLE entries
+    val id: Int, // main id
     val disabled: Boolean,
-    val parentID: Int,
-    val priorityBit: Int,
-    val name: String,
-    val icon: String,
+    val name: String, // page name
+    val icon: String, // feather icon
     val pageID: Int,
     val author: String,
-    val group: String,
-    val createdTime: String,
-    val countryOfOrigin: String,
-    val language: String,
-    val executionScript: String,
-    val metadata: String,
-    val type: Int,
-    val likes: Int
+    val createdTime: String,// date and time
+    val timeZone: String, // timezone
+    // NULLABLE entries below
+    val parentID: Int?, // allow tree structure (stipulate parent)
+    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val group: String?,
+    val countryOfOrigin: String?,
+    val language: String?,
+    val executionScript: String?,
+    val metadata: String?,
+    val type: Int?,
+    val likes: Int?
 )
 
 data class CompletePage(
-    val id: Int,
+    // NOT NULLABLE entries
+    val id: Int, // main id
     val disabled: Boolean,
-    val parentID: Int,
-    val priorityBit: Int,
-    val name: String,
-    val icon: String,
+    val name: String, // page name
+    val icon: String, // feather icon
     val pageID: Int,
     val author: String,
-    val group: String,
-    val createdTime: String,
-    val countryOfOrigin: String,
-    val language: String,
-    val executionScript: String,
-    val metadata: String,
-    val type: Int,
-    val likes: Int,
+    val createdTime: String,// date and time
+    val timeZone: String, // timezone
+    // NULLABLE entries below
+    val parentID: Int?, // allow tree structure (stipulate parent)
+    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val group: String?,
+    val countryOfOrigin: String?,
+    val language: String?,
+    val executionScript: String?,
+    val metadata: String?,
+    val type: Int?,
+    val likes: Int?,
     val posts: MutableList<ThisPost>
 )
 
@@ -134,43 +178,94 @@ data class JsonReq(
 data class Success(
     val success: Boolean
 )
-/*
-val id = integer("id").autoIncrement().primaryKey()
-    val disabled = bool("disabled")
-    val createdTime = varchar("createdTime", 150)
-    val username = varchar("name", length = 32)
-    val firstName = varchar("firstName", 50)
-    val lastName = varchar("lastName", 50)
-    val streetAddress = varchar("streetAddress", 150)
-    val postCode = varchar("postCode", 150)
-    val country = varchar("country", 50)
-    val countryCode = varchar("countryCode", 3)
-    val email = varchar("email", length = 150)
-    val mobile = varchar("mobile", length = 150)
-    val areaCode = integer("areaCode")
-    val group = varchar("group", length = 150)
-    val secondaryGroup = varchar("secondaryGroup", length = 150)
-    val password = varchar("password", length = 150)
-    val metadata = text("metadata")
+/**
+ * The Users SQL table should only be accessed through the correct data classes:
+ * CreateThisUser()
+ *  For initial creation of the Users() row. It includes all of the rows.
+ *
+ * ReadWriteThisUser()
+ *  For administrative purposes. It includes all of the rows except:
+ *      -> createdTime
+ *      -> passwordSalt
+ *
+ * AuthUser()
+ *  For verifying Users password. It only includes id, group, password and username.
+ *
+ * ReadUserInfo()
+ *  For reading user data. Does not include:
+ *      -> password
+ *      -> passwordSalt
  */
-data class ThisUser(
+data class ReadUserInfo(
+    // NOT NULLABLE entries
     val id: Int,
     val disabled: Boolean,
     val createdTime: String,
-    val username: String,
-    val firstName: String,
-    val lastName: String,
-    val streetAddress: String,
-    val postCode: String,
-    val country: String,
-    val countryCode: String,
-    val email: String,
-    val mobile: String,
-    val areaCode: String,
     val group: String,
-    val secondaryGroup: String,
+    val username: String,
+
+    // NULLABLE entries
+    val firstName: String?,
+    val lastName: String?,
+    val streetAddress: String?,
+    val postCode: String?,
+    val state: String?,
+    val country: String?,
+    val countryCode: String?,
+    val language: String?,
+    val email: String?,
+    val areaCode: String?,
+    val mobile: String?,
+    val secondaryGroup: Int?,
+    val metadata: String?
+)
+data class CreateThisUser(
+    // NOT NULLABLE entries
+    val id: Int,
+    val disabled: Boolean,
+    val createdTime: String,
+    val group: String,
     val password: String,
-    val metadata: String
+    val passwordSalt: String,
+    val username: String,
+
+    // NULLABLE entries
+    val firstName: String?,
+    val lastName: String?,
+    val streetAddress: String?,
+    val postCode: String?,
+    val state: String?,
+    val country: String?,
+    val countryCode: String?,
+    val language: String?,
+    val email: String?,
+    val areaCode: String?,
+    val mobile: String?,
+    val secondaryGroup: Int?,
+    val metadata: String?
+)
+data class ReadWriteThisUser(
+    // NOT NULLABLE entries
+    val id: Int,
+    val disabled: Boolean,
+    val group: String,
+    val password: String,
+    val username: String,
+
+    // NULLABLE entries
+    val firstName: String?,
+    val lastName: String?,
+    val streetAddress: String?,
+    val postCode: String?,
+    val state: String?,
+    val country: String?,
+    val countryCode: String?,
+    val language: String?,
+    val email: String?,
+    val areaCode: String?,
+    val mobile: String?,
+    val secondaryGroup: Int?,
+    val metadata: String?
 )
 
 data class AuthUser(

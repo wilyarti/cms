@@ -2,7 +2,6 @@ package os3
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
-import io.ktor.features.origin
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
@@ -15,6 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 
 fun Route.adminAPI() {
+    //TODO do not delete page. Just toggle disabled bit.
     post("/api/deletePage") {
         try {
             if (!validateAdmin(call)) {
@@ -31,6 +31,7 @@ fun Route.adminAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
+    //TODO do not delete post. Just toggle disabled bit.
     post("/api/deletePost") {
         try {
             if (!validateAdmin(call)) {
@@ -53,7 +54,7 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingUser = call.receive<ThisUser>()
+            val incomingUser = call.receive<ReadWriteThisUser>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
@@ -71,27 +72,34 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
+            val thisSession = call.sessions.get<MySession>()
+            val creatingUser = getThisUser(thisSession?.id);
             val incomingPost = call.receive<ThisPost>()
+            if (creatingUser === null) {
+                throw(error("ERROR: User ${incomingPost.name} does not exit in database."))
+            }
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
                 Posts.insert() {
-                    it[disabled] = false
-                    it[parentID] = 0
-                    it[priorityBit] = 255
+                    it[disabled] = incomingPost.disabled
                     it[name] = incomingPost.name
                     it[icon] = incomingPost.icon
-                    it[contents] = incomingPost.contents
-                    it[pageID] = incomingPost.pageID // which page it is displayed on
-                    it[author] = "root"
-                    it[group] = "wheel"
+                    it[pageID] = incomingPost.pageID
+                    it[author] = creatingUser.username
                     it[createdTime] = incomingPost.createdTime
-                    it[countryOfOrigin] = "AU"
-                    it[language] = "EN"
-                    it[executionScript] = "Nothing to see here."
-                    it[metadata] = "Add me."
-                    it[type] = 1
-                    it[likes] = 0
+                    it[timeZone] = incomingPost.timeZone
+                    it[contents] = incomingPost.contents
+                    // NULLABLE entries below
+                    it[parentID] = null
+                    it[priorityBit] = null
+                    it[group] = null
+                    it[countryOfOrigin] = null
+                    it[language] = null
+                    it[executionScript] = null
+                    it[metadata] = null
+                    it[type] = null
+                    it[likes] = null
                 }
             }
             call.respond(Status(success = true, errorMessage = ""))
@@ -104,26 +112,33 @@ fun Route.adminAPI() {
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
+            val thisSession = call.sessions.get<MySession>()
+            val creatingUser = getThisUser(thisSession?.id);
             val incomingPage = call.receive<ThisPage>()
+            if (creatingUser === null) {
+                throw(error("ERROR: User ${incomingPage.name} does not exit in database."))
+            }
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
                 Pages.insert() {
-                    it[disabled] = false
-                    it[parentID] = 0
-                    it[priorityBit] = 255
+                    it[disabled] = incomingPage.disabled
                     it[name] = incomingPage.name
                     it[icon] = incomingPage.icon
-                    it[pageID] = 0// unused
-                    it[author] = "root"
-                    it[group] = "wheel"
+                    it[pageID] = incomingPage.pageID
+                    it[author] = creatingUser.username
                     it[createdTime] = incomingPage.createdTime
-                    it[countryOfOrigin] = "AU"
-                    it[language] = "EN"
-                    it[executionScript] = "Nothing to see here."
-                    it[metadata] = "Add me."
-                    it[type] = 1
-                    it[likes] = 0
+                    it[timeZone] = incomingPage.timeZone
+                    // NULLABLE entries below
+                    it[parentID] = null
+                    it[priorityBit] = null
+                    it[group] = null
+                    it[countryOfOrigin] = null
+                    it[language] = null
+                    it[executionScript] = null
+                    it[metadata] = null
+                    it[type] = null
+                    it[likes] = null
                 }
             }
             call.respond(Status(success = true, errorMessage = ""))
@@ -135,11 +150,11 @@ fun Route.adminAPI() {
     post("/api/addUser") {
         try {
             //TODO implement missing fields
+            //TODO implement password salt
             if (!validateAdmin(call)) {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
-            val incomingUser = call.receive<ThisUser>()
-            call.request.origin.remoteHost
+            val incomingUser = call.receive<CreateThisUser>()
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
@@ -282,18 +297,20 @@ fun getPages(): MutableList<ThisPage> {
             val currentPage = ThisPage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
-                parentID = page[Pages.parentID],
-                priorityBit = page[Pages.priorityBit],
                 name = page[Pages.name],
                 icon = page[Pages.icon],
                 pageID = page[Pages.pageID],
                 author = page[Pages.author],
+                createdTime = page[Pages.createdTime],
+                timeZone = page[Pages.timeZone],
+                // NULLABLE entries below= page[Pages.],
+                parentID = page[Pages.parentID],
+                priorityBit = page[Pages.priorityBit],
                 group = page[Pages.group],
-                createdTime = page[Pages.createdTime].toString(),
                 countryOfOrigin = page[Pages.countryOfOrigin],
                 language = page[Pages.language],
-                executionScript = page[Pages.executionScript].toString(),
-                metadata = page[Pages.metadata].toString(),
+                executionScript = page[Pages.executionScript],
+                metadata = page[Pages.metadata],
                 type = page[Pages.type],
                 likes = page[Pages.likes]
             )
@@ -308,25 +325,27 @@ fun getPosts(): MutableList<ThisPost> {
     val returnedListOfPosts = mutableListOf<ThisPost>()
     transaction {
         SchemaUtils.create(Posts)
-        for (p in Posts.selectAll()) {
+        for (post in Posts.selectAll()) {
             val currentPost = ThisPost(
-                id = p[Posts.id],
-                disabled = p[Posts.disabled],
-                parentID = p[Posts.parentID],
-                priorityBit = p[Posts.priorityBit],
-                name = p[Posts.name],
-                icon = p[Posts.icon],
-                pageID = p[Posts.pageID],
-                author = p[Posts.author],
-                group = p[Posts.group],
-                createdTime = p[Posts.createdTime].toString(),
-                countryOfOrigin = p[Posts.countryOfOrigin],
-                language = p[Posts.language],
-                executionScript = p[Posts.executionScript].toString(),
-                contents = p[Posts.contents].toString(),
-                metadata = p[Posts.metadata].toString(),
-                type = p[Posts.type],
-                likes = p[Posts.likes]
+                id = post[Posts.id],
+                disabled = post[Posts.disabled],
+                name = post[Posts.name],
+                icon = post[Posts.icon],
+                pageID = post[Posts.pageID],
+                author = post[Posts.author],
+                createdTime = post[Posts.createdTime],
+                timeZone = post[Posts.timeZone],
+                contents = post[Posts.contents],
+                // NULLABLE entries below= post[Posts.],
+                parentID = post[Posts.parentID],
+                priorityBit = post[Posts.priorityBit],
+                group = post[Posts.group],
+                countryOfOrigin = post[Posts.countryOfOrigin],
+                language = post[Posts.language],
+                executionScript = post[Posts.executionScript],
+                metadata = post[Posts.metadata],
+                type = post[Posts.type],
+                likes = post[Posts.likes]
             )
             returnedListOfPosts.add(currentPost)
         }
@@ -334,30 +353,74 @@ fun getPosts(): MutableList<ThisPost> {
     return returnedListOfPosts
 }
 
-fun getUsers(): MutableList<ThisUser> {
+fun getThisUser(userID: Int?): ReadUserInfo? {
+    var thisUser: ReadUserInfo?
+    thisUser = null
+    // check if our principal is null. It shouldn't be
+    if (userID === null) {
+        return null
+    }
     connectToDB()
-    val returnedListOfUsers = mutableListOf<ThisUser>()
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.selectAll()) {
-            val currentUser = ThisUser(
+        for (user in Users.select { Users.id eq userID }) {
+            val currentUser = ReadUserInfo(
+                // NOT NULLABLE entries
                 id = user[Users.id],
                 disabled = user[Users.disabled],
+                group = user[Users.group],
                 createdTime = user[Users.createdTime],
                 username = user[Users.username],
+                // NULLABLE entries
                 firstName = user[Users.firstName],
                 lastName = user[Users.lastName],
                 streetAddress = user[Users.streetAddress],
                 postCode = user[Users.postCode],
+                state = user[Users.state],
                 country = user[Users.country],
                 countryCode = user[Users.countryCode],
+                language = user[Users.language],
                 email = user[Users.email],
-                mobile = user[Users.mobile],
                 areaCode = user[Users.areaCode],
-                group = user[Users.group],
+                mobile = user[Users.mobile],
                 secondaryGroup = user[Users.secondaryGroup],
-                metadata = user[Users.metadata],
-                password = user[Users.password]
+                metadata = user[Users.metadata]
+            )
+            thisUser = currentUser
+        }
+    }
+    return thisUser
+}
+
+fun getUsers(): MutableList<ReadWriteThisUser> {
+    connectToDB()
+    val returnedListOfUsers = mutableListOf<ReadWriteThisUser>()
+    transaction {
+        SchemaUtils.create(Users)
+        for (user in Users.selectAll()) {
+            val currentUser = ReadWriteThisUser(
+                // NOT NULLABLE entries
+                id = user[Users.id],
+                disabled = user[Users.disabled],
+                group = user[Users.group],
+                // password = user[Users.password],
+                // passwordSalt = user[Users.passwordSalt],
+                password = "",
+                username = user[Users.username],
+                // NULLABLE entries
+                firstName = user[Users.firstName],
+                lastName = user[Users.lastName],
+                streetAddress = user[Users.streetAddress],
+                postCode = user[Users.postCode],
+                state = user[Users.state],
+                country = user[Users.country],
+                countryCode = user[Users.countryCode],
+                language = user[Users.language],
+                email = user[Users.email],
+                areaCode = user[Users.areaCode],
+                mobile = user[Users.mobile],
+                secondaryGroup = user[Users.secondaryGroup],
+                metadata = user[Users.metadata]
             )
             returnedListOfUsers.add(currentUser)
         }
@@ -375,42 +438,46 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
             val currentPage = CompletePage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
-                parentID = page[Pages.parentID],
-                priorityBit = page[Pages.priorityBit],
                 name = page[Pages.name],
                 icon = page[Pages.icon],
                 pageID = page[Pages.pageID],
                 author = page[Pages.author],
+                createdTime = page[Pages.createdTime],
+                timeZone = page[Pages.timeZone],
+                // NULLABLE entries below= page[Pages.],
+                parentID = page[Pages.parentID],
+                priorityBit = page[Pages.priorityBit],
                 group = page[Pages.group],
-                createdTime = page[Pages.createdTime].toString(),
                 countryOfOrigin = page[Pages.countryOfOrigin],
                 language = page[Pages.language],
-                executionScript = page[Pages.executionScript].toString(),
-                metadata = page[Pages.metadata].toString(),
+                executionScript = page[Pages.executionScript],
+                metadata = page[Pages.metadata],
                 type = page[Pages.type],
                 likes = page[Pages.likes],
                 posts = mutableListOf<ThisPost>()
             )
-            for (p in allPosts) {
-                if (p[Posts.pageID] == page[Pages.id]) {
+            for (post in allPosts) {
+                if (post[Posts.pageID] == page[Pages.id]) {
                     val currentPost = ThisPost(
-                        id = p[Posts.id],
-                        disabled = p[Posts.disabled],
-                        parentID = p[Posts.parentID],
-                        priorityBit = p[Posts.priorityBit],
-                        name = p[Posts.name],
-                        icon = p[Posts.icon],
-                        pageID = p[Posts.pageID],
-                        author = p[Posts.author],
-                        group = p[Posts.group],
-                        createdTime = p[Posts.createdTime].toString(),
-                        countryOfOrigin = p[Posts.countryOfOrigin],
-                        language = p[Posts.language],
-                        executionScript = p[Posts.executionScript].toString(),
-                        contents = p[Posts.contents].toString(),
-                        metadata = p[Posts.metadata].toString(),
-                        type = p[Posts.type],
-                        likes = p[Posts.likes]
+                        id = post[Posts.id],
+                        disabled = post[Posts.disabled],
+                        name = post[Posts.name],
+                        icon = post[Posts.icon],
+                        pageID = post[Posts.pageID],
+                        author = post[Posts.author],
+                        createdTime = post[Posts.createdTime],
+                        timeZone = post[Posts.timeZone],
+                        contents = post[Posts.contents],
+                        // NULLABLE entries below= post[Posts.],
+                        parentID = post[Posts.parentID],
+                        priorityBit = post[Posts.priorityBit],
+                        group = post[Posts.group],
+                        countryOfOrigin = post[Posts.countryOfOrigin],
+                        language = post[Posts.language],
+                        executionScript = post[Posts.executionScript],
+                        metadata = post[Posts.metadata],
+                        type = post[Posts.type],
+                        likes = post[Posts.likes]
                     )
                     currentPage.posts.add(currentPost)
                 }
