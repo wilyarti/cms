@@ -155,6 +155,9 @@ fun Route.adminAPI() {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
             val incomingUser = call.receive<CreateThisUser>()
+            if (!isUsernameAvailable(incomingUser.username)) {
+                throw(error("Username is not available."));
+            }
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
@@ -192,6 +195,9 @@ fun Route.adminAPI() {
                 Status(success = true, errorMessage = "Error! Prohibited.")
             }
             val incomingUser = call.receive<CreateThisUser>()
+            if (!isUsernameChangeAvailable(incomingUser.username, incomingUser.id)) {
+                throw(error("Username is not available."));
+            }
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
@@ -392,7 +398,38 @@ fun getPosts(): MutableList<ThisPost> {
     }
     return returnedListOfPosts
 }
-
+fun isUsernameAvailable(username: String?): Boolean{
+    connectToDB()
+    var available = true;
+    // check if our principal is null. It shouldn't be
+    if (username === null) {
+        return false
+    }
+    connectToDB()
+    transaction {
+        SchemaUtils.create(Users)
+        for (user in Users.select { Users.username eq username }) {
+            available = false;
+        }
+    }
+    return available
+}
+fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean{
+    connectToDB()
+    var available = true;
+    // check if our principal is null. It shouldn't be
+    if (username === null || userID === null) {
+        return false
+    }
+    connectToDB()
+    transaction {
+        SchemaUtils.create(Users)
+        for (user in Users.select { Users.username.eq(username) and Users.id.neq(userID) }) {
+            available = false;
+        }
+    }
+    return available
+}
 fun getThisUser(userID: Int?): ReadUserInfo? {
     var thisUser: ReadUserInfo?
     thisUser = null

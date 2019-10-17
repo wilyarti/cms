@@ -3,11 +3,9 @@ package os3
 
 import net.opens3.db_password
 import net.opens3.db_username
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.and
 
 
 fun connectToDB(): Unit {
@@ -44,7 +42,7 @@ fun verifyUserCredentials(thisName: String): AuthUser? {
     authorisedUser = null
     transaction {
         SchemaUtils.create(Users)
-        for (user in Users.select { Users.username eq thisName; Users.disabled eq false}) {
+        for (user in Users.select{ Users.username.eq(thisName) and Users.disabled.eq(false)}) {
             val returnedUser = AuthUser(
                 id = user[Users.id],
                 username = user[Users.username],
