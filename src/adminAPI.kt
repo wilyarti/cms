@@ -160,18 +160,58 @@ fun Route.adminAPI() {
                 SchemaUtils.create(Users)
                 Users.insert {
                     it[disabled] = incomingUser.disabled
+                    it[group] = incomingUser.group
                     it[createdTime] = incomingUser.createdTime
                     it[username] = incomingUser.username
+                    // NULLABLE entries
                     it[firstName] = incomingUser.firstName
                     it[lastName] = incomingUser.lastName
                     it[streetAddress] = incomingUser.streetAddress
                     it[postCode] = incomingUser.postCode
+                    it[state] = incomingUser.state
                     it[country] = incomingUser.country
                     it[countryCode] = incomingUser.countryCode
+                    it[language] = incomingUser.language
                     it[email] = incomingUser.email
-                    it[mobile] = incomingUser.mobile
                     it[areaCode] = incomingUser.areaCode
+                    it[mobile] = incomingUser.mobile
+                    it[secondaryGroup] = incomingUser.secondaryGroup
+                    it[metadata] = incomingUser.metadata
+                    it[password] = incomingUser.password
+                    it[passwordSalt] = "TODO"
+                }
+            }
+            call.respond(Status(success = true, errorMessage = ""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
+    post("/api/updateUser") {
+        try {
+            if (!validateAdmin(call)) {
+                Status(success = true, errorMessage = "Error! Prohibited.")
+            }
+            val incomingUser = call.receive<CreateThisUser>()
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Users)
+                Users.update({Users.id eq incomingUser.id}){
+                    it[disabled] = incomingUser.disabled
                     it[group] = incomingUser.group
+                    it[createdTime] = incomingUser.createdTime
+                    it[username] = incomingUser.username
+                    // NULLABLE entries
+                    it[firstName] = incomingUser.firstName
+                    it[lastName] = incomingUser.lastName
+                    it[streetAddress] = incomingUser.streetAddress
+                    it[postCode] = incomingUser.postCode
+                    it[state] = incomingUser.state
+                    it[country] = incomingUser.country
+                    it[countryCode] = incomingUser.countryCode
+                    it[language] = incomingUser.language
+                    it[email] = incomingUser.email
+                    it[areaCode] = incomingUser.areaCode
+                    it[mobile] = incomingUser.mobile
                     it[secondaryGroup] = incomingUser.secondaryGroup
                     it[metadata] = incomingUser.metadata
                     it[password] = incomingUser.password
@@ -405,7 +445,7 @@ fun getUsers(): MutableList<ReadWriteThisUser> {
                 group = user[Users.group],
                 // password = user[Users.password],
                 // passwordSalt = user[Users.passwordSalt],
-                password = "",
+                password = user[Users.password],
                 username = user[Users.username],
                 // NULLABLE entries
                 firstName = user[Users.firstName],
