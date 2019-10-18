@@ -238,7 +238,7 @@ fun Route.adminAPI() {
             transaction {
                 SchemaUtils.create(Pages)
                 Pages.update({ Pages.id eq incomingPage.id }) {
-                    it[disabled] = false
+                    it[disabled] = incomingPage.disabled
                     it[parentID] = 0
                     it[priorityBit] = 255
                     it[name] = incomingPage.name
@@ -270,7 +270,7 @@ fun Route.adminAPI() {
             transaction {
                 SchemaUtils.create(Posts)
                 Posts.update({ Posts.id eq incomingPost.id }) {
-                    it[disabled] = false
+                    it[disabled] = incomingPost.disabled
                     it[parentID] = 0
                     it[priorityBit] = 255
                     it[name] = incomingPost.name
@@ -510,8 +510,8 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
     val returnedPages = mutableListOf<CompletePage>()
     transaction {
         SchemaUtils.create(Pages, Posts)
-        val allPosts = Posts.selectAll()
-        for (page in Pages.selectAll()) {
+        val allPosts = Posts.select {Posts.disabled eq false}
+        for (page in Pages.select {Pages.disabled eq false}) {
             val currentPage = CompletePage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
