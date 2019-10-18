@@ -14,7 +14,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 
 fun Route.adminAPI() {
-    //TODO do not delete page. Just toggle disabled bit.
     post("/api/deletePage") {
         try {
             if (!validateAdmin(call)) {
@@ -31,7 +30,6 @@ fun Route.adminAPI() {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
-    //TODO do not delete post. Just toggle disabled bit.
     post("/api/deletePost") {
         try {
             if (!validateAdmin(call)) {
@@ -58,9 +56,7 @@ fun Route.adminAPI() {
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
-                Users.update({ Users.id eq incomingUser.id }) {
-                    it[disabled] = true
-                }
+                Users.deleteWhere { Users.id eq incomingUser.id }
             }
             call.respond(Status(success = true, errorMessage = ""))
         } catch (e: Throwable) {
@@ -201,7 +197,7 @@ fun Route.adminAPI() {
             connectToDB()
             transaction {
                 SchemaUtils.create(Users)
-                Users.update({Users.id eq incomingUser.id}){
+                Users.update({ Users.id eq incomingUser.id }) {
                     it[disabled] = incomingUser.disabled
                     it[group] = incomingUser.group
                     it[createdTime] = incomingUser.createdTime
@@ -398,7 +394,8 @@ fun getPosts(): MutableList<ThisPost> {
     }
     return returnedListOfPosts
 }
-fun isUsernameAvailable(username: String?): Boolean{
+
+fun isUsernameAvailable(username: String?): Boolean {
     connectToDB()
     var available = true;
     // check if our principal is null. It shouldn't be
@@ -414,7 +411,8 @@ fun isUsernameAvailable(username: String?): Boolean{
     }
     return available
 }
-fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean{
+
+fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean {
     connectToDB()
     var available = true;
     // check if our principal is null. It shouldn't be
@@ -430,6 +428,7 @@ fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean{
     }
     return available
 }
+
 fun getThisUser(userID: Int?): ReadUserInfo? {
     var thisUser: ReadUserInfo?
     thisUser = null
@@ -510,8 +509,8 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
     val returnedPages = mutableListOf<CompletePage>()
     transaction {
         SchemaUtils.create(Pages, Posts)
-        val allPosts = Posts.select {Posts.disabled eq false}
-        for (page in Pages.select {Pages.disabled eq false}) {
+        val allPosts = Posts.select { Posts.disabled eq false }
+        for (page in Pages.select { Pages.disabled eq false }) {
             val currentPage = CompletePage(
                 id = page[Pages.id],
                 disabled = page[Pages.disabled],
