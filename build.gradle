@@ -17,7 +17,7 @@ apply plugin: 'application'
 apply plugin: "com.github.johnrengelman.shadow"
 
 group 'os3'
-version '0.1.6'
+version '0.1.7'
 mainClassName = "io.ktor.server.netty.EngineMain"
 
 sourceSets {

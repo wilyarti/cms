@@ -557,7 +557,37 @@ fun getUsers(): MutableList<ReadWriteThisUser> {
     }
     return returnedListOfUsers
 }
-
+fun getAllPosts(): MutableList<ThisPage> {
+    connectToDB()
+    val returnedPages = mutableListOf<ThisPage>()
+    transaction {
+        SchemaUtils.create(Pages, Posts)
+        for (page in Pages.select { Pages.disabled eq false }) {
+            val currentPage = ThisPage(
+                id = page[Pages.id],
+                disabled = page[Pages.disabled],
+                name = page[Pages.name],
+                icon = page[Pages.icon],
+                pageID = page[Pages.pageID],
+                author = page[Pages.author],
+                createdTime = page[Pages.createdTime],
+                timeZone = page[Pages.timeZone],
+                // NULLABLE entries below= page[Pages.],
+                parentID = page[Pages.parentID],
+                priorityBit = page[Pages.priorityBit],
+                group = page[Pages.group],
+                countryOfOrigin = page[Pages.countryOfOrigin],
+                language = page[Pages.language],
+                executionScript = page[Pages.executionScript],
+                metadata = page[Pages.metadata],
+                type = page[Pages.type],
+                likes = page[Pages.likes]
+            )
+            returnedPages.add(currentPage)
+        }
+    }
+    return returnedPages
+}
 fun getAllPostsAndPages(): MutableList<CompletePage> {
     connectToDB()
     val returnedPages = mutableListOf<CompletePage>()

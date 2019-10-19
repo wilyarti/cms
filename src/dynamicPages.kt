@@ -3,6 +3,7 @@ package os3
 
 import io.ktor.application.call
 import io.ktor.html.respondHtml
+import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondRedirect
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -12,7 +13,8 @@ import org.joda.time.format.DateTimeFormat
 internal fun Route.dynamicPages() {
 
     get("/") {
-        call.respondRedirect("/home/1")
+        val pageData = getAllPosts()
+        call.respondRedirect("/home/${pageData[0].id}")
     }
     get("/post/{postID}") {
         val requestedPostID: String? = call.parameters["postID"]
@@ -21,6 +23,13 @@ internal fun Route.dynamicPages() {
         val pageLookup = mutableMapOf<Int, CompletePage>();
         for ((index) in pageData.withIndex()) {
             pageLookup[pageData[index].id] = pageData[index]
+        }
+        if (pageLookup[requestedPostID?.toInt()] === null) {
+            call.respondHtml(status = HttpStatusCode.NotFound) {
+                body {
+                    +"Page not found."
+                }
+            }
         }
         call.respondHtml {
             head {
@@ -163,6 +172,13 @@ internal fun Route.dynamicPages() {
         val pageLookup = mutableMapOf<Int, CompletePage>();
         for ((index) in pageData.withIndex()) {
             pageLookup[pageData[index].id] = pageData[index]
+        }
+        if (pageLookup[requestedPageNumber?.toInt()] === null) {
+            call.respondHtml(status = HttpStatusCode.NotFound) {
+                body {
+                    +"Page not found."
+                }
+            }
         }
         println("pagenumber $pageNumber pageRange $postRange")
         call.respondHtml {

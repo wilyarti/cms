@@ -52,6 +52,7 @@ fun Application.module() {
         configureFormAuth()
     }
 
+
     routing {
         // setup routes
         homepageRoute()
