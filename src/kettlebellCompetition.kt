@@ -23,7 +23,7 @@ internal fun Routing.kettlebellCompetition() {
             try {
                 val addSet = call.receive<ThisSet>()
                 if (thisSession?.id != addSet.uuid) {
-                    call.respond(Status(success = false, errorMessage = "Access not permitted."))
+                    throw(error("Access not permitted."));
                 }
                 connectToDB()
                 transaction {
@@ -35,7 +35,7 @@ internal fun Routing.kettlebellCompetition() {
                         it[createdTime] = addSet.createdTime
                     }
                 }
-                call.respond(Status(success = true, errorMessage = ""))
+                call.respond(Status(success = true, errorMessage = "Successfully added set."))
             } catch (e: Throwable) {
                 call.respond(Status(success = false, errorMessage = e.toString()))
             }

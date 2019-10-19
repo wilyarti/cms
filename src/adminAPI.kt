@@ -17,7 +17,7 @@ fun Route.adminAPI() {
     post("/api/deletePage") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val deletedPage = call.receive<ThisPage>()
             connectToDB()
@@ -25,7 +25,7 @@ fun Route.adminAPI() {
                 SchemaUtils.create(Pages)
                 Pages.deleteWhere { Pages.id eq deletedPage.id }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully deleted page ${deletedPage.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully deleted page \"${deletedPage.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -33,7 +33,7 @@ fun Route.adminAPI() {
     post("/api/deletePost") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
 
             val deletedPost = call.receive<ThisPage>()
@@ -42,7 +42,7 @@ fun Route.adminAPI() {
                 SchemaUtils.create(Posts)
                 Posts.deleteWhere { Posts.id eq deletedPost.id }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully deleted post ${deletedPost.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully deleted post \"${deletedPost.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -50,7 +50,7 @@ fun Route.adminAPI() {
     post("/api/deleteUser") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val incomingUser = call.receive<ReadWriteThisUser>()
             connectToDB()
@@ -58,7 +58,12 @@ fun Route.adminAPI() {
                 SchemaUtils.create(Users)
                 Users.deleteWhere { Users.id eq incomingUser.id }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully deleted user ${incomingUser.username}"))
+            call.respond(
+                Status(
+                    success = true,
+                    errorMessage = "Successfully deleted user \"${incomingUser.username}\""
+                )
+            )
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -66,7 +71,7 @@ fun Route.adminAPI() {
     post("/api/addPost") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -98,7 +103,7 @@ fun Route.adminAPI() {
                     it[likes] = null
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully added post ${incomingPost.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully added post \"${incomingPost.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -106,7 +111,7 @@ fun Route.adminAPI() {
     post("/api/addPage") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -137,7 +142,7 @@ fun Route.adminAPI() {
                     it[likes] = null
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully added page ${incomingPage.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully added page \"${incomingPage.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -148,7 +153,7 @@ fun Route.adminAPI() {
             //TODO implement missing fields
             //TODO implement password salt
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameAvailable(incomingUser.username)) {
@@ -180,7 +185,7 @@ fun Route.adminAPI() {
                     it[passwordSalt] = "TODO"
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully added user ${incomingUser.username}"))
+            call.respond(Status(success = true, errorMessage = "Successfully added user \"${incomingUser.username}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -188,7 +193,7 @@ fun Route.adminAPI() {
     post("/api/updateUser") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameChangeAvailable(incomingUser.username, incomingUser.id)) {
@@ -219,7 +224,12 @@ fun Route.adminAPI() {
                     it[password] = incomingUser.password
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully updated user ${incomingUser.username}"))
+            call.respond(
+                Status(
+                    success = true,
+                    errorMessage = "Successfully updated user \"${incomingUser.username}\""
+                )
+            )
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -227,7 +237,7 @@ fun Route.adminAPI() {
     post("/api/updatePage") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val incomingPage = call.receive<ThisPage>()
             connectToDB()
@@ -251,7 +261,7 @@ fun Route.adminAPI() {
                     it[likes] = 0
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully updated page ${incomingPage.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully updated page \"${incomingPage.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
@@ -259,7 +269,7 @@ fun Route.adminAPI() {
     post("/api/updatePost") {
         try {
             if (!validateAdmin(call)) {
-                Status(success = false, errorMessage = "Error! Prohibited.")
+                throw(error("Error! Prohibited."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -291,7 +301,7 @@ fun Route.adminAPI() {
                     it[likes] = null
                 }
             }
-            call.respond(Status(success = true, errorMessage = "Successfully updated post ${incomingPost.name}"))
+            call.respond(Status(success = true, errorMessage = "Successfully updated post \"${incomingPost.name}\""))
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
