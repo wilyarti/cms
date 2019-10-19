@@ -32,6 +32,9 @@ internal fun Routing.homepageRoute() {
         }
     }
     */
+    // siteMap
+    siteMap()
+    // DSL pages
     dynamicPages()
     // for the /kbcomp.html web app
     kettlebellCompetition()
@@ -41,6 +44,7 @@ internal fun Routing.homepageRoute() {
     API()
     // legacy routes for /rtstats.html
     rtStatsGraphingAPI()
+
 }
 
 internal fun Routing.loginRoute() {

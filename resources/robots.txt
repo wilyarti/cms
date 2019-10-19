@@ -1,0 +1,6 @@
+Sitemap: https://opens3.net/sitemap.xml
+
+User-agent: *
+Allow: /home/
+Disallow: /login
+Disallow: /api/

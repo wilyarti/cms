@@ -379,6 +379,43 @@ fun getPages(): MutableList<ThisPage> {
     return returnedListOfPages
 }
 
+fun getPost(queriedPost: Int?): ThisPost? {
+    connectToDB()
+    var returnedPost: ThisPost?
+    returnedPost = null
+    if (queriedPost == null) {
+        return null
+    }
+    transaction {
+        SchemaUtils.create(Posts)
+            for (post in Posts.select{Posts.id eq queriedPost}) {
+            val currentPost = ThisPost(
+                id = post[Posts.id],
+                disabled = post[Posts.disabled],
+                name = post[Posts.name],
+                icon = post[Posts.icon],
+                pageID = post[Posts.pageID],
+                author = post[Posts.author],
+                createdTime = post[Posts.createdTime],
+                timeZone = post[Posts.timeZone],
+                contents = post[Posts.contents],
+                // NULLABLE entries below= post[Posts.],
+                parentID = post[Posts.parentID],
+                priorityBit = post[Posts.priorityBit],
+                group = post[Posts.group],
+                countryOfOrigin = post[Posts.countryOfOrigin],
+                language = post[Posts.language],
+                executionScript = post[Posts.executionScript],
+                metadata = post[Posts.metadata],
+                type = post[Posts.type],
+                likes = post[Posts.likes]
+            )
+            returnedPost = currentPost
+        }
+    }
+    return returnedPost
+}
+
 fun getPosts(): MutableList<ThisPost> {
     connectToDB()
     val returnedListOfPosts = mutableListOf<ThisPost>()
