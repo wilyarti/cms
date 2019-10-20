@@ -15,6 +15,7 @@ import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
+import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -110,7 +111,7 @@ private fun Authentication.Configuration.configureFormAuth() {
         validate { cred: UserPasswordCredential ->
             val userCredentials = verifyUserCredentials(cred.name)
             println("Username: ${cred.name} Password: ${cred.password} : ${userCredentials?.password}")
-            if (userCredentials !== null && userCredentials.password == cred.password) {
+            if (userCredentials !== null && BCrypt.checkpw(cred.password, userCredentials?.password)) {
                 println("Session validated....")
                 MySession(id = userCredentials.id, username = userCredentials.username, group = userCredentials.group)
             } else {

@@ -11,7 +11,7 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-
+import org.mindrot.jbcrypt.BCrypt
 
 fun Route.adminAPI() {
     post("/api/deletePage") {
@@ -183,6 +183,56 @@ fun Route.adminAPI() {
                     it[metadata] = incomingUser.metadata
                     it[password] = incomingUser.password
                     it[passwordSalt] = "TODO"
+                }
+            }
+            call.respond(Status(success = true, errorMessage = "Successfully added user \"${incomingUser.username}\""))
+        } catch (e: Throwable) {
+            call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
+    post("/api/isUserNameAvailable") {
+        val incomingUser = call.receive<UserNameCheck>()
+
+        if (!isUsernameAvailable(incomingUser.username)) {
+            call.respond(Status(success = false, errorMessage = "Username is not available"))
+        } else {
+            call.respond(Status(success = true, errorMessage = "Username is available."))
+        }
+    }
+    post("/api/userSignUp") {
+        try {
+            //TODO implement missing fields
+            //TODO implement password salt
+            val incomingUser = call.receive<CreateThisUser>()
+            if (!isUsernameAvailable(incomingUser.username)) {
+                throw(error("Username is not available."));
+            }
+            val saltyPassword = BCrypt.gensalt()
+            val passwordHashed = BCrypt.hashpw(incomingUser.password, saltyPassword)
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Users)
+                Users.insert {
+                    it[disabled] = incomingUser.disabled
+                    it[group] = "user"
+                    it[createdTime] = incomingUser.createdTime
+                    it[username] = incomingUser.username
+                    // NULLABLE entries
+                    it[firstName] = incomingUser.firstName
+                    it[lastName] = incomingUser.lastName
+                    it[streetAddress] = null
+                    it[postCode] = null
+                    it[state] = null
+                    it[country] = null
+                    it[countryCode] = null
+                    it[language] = null
+                    it[email] = incomingUser.email
+                    it[areaCode] = null
+                    it[mobile] = null
+                    it[secondaryGroup] = null
+                    it[metadata] = null
+                    it[password] = passwordHashed
+                    it[passwordSalt] = saltyPassword
                 }
             }
             call.respond(Status(success = true, errorMessage = "Successfully added user \"${incomingUser.username}\""))
@@ -388,7 +438,7 @@ fun getPost(queriedPost: Int?): ThisPost? {
     }
     transaction {
         SchemaUtils.create(Posts)
-            for (post in Posts.select{Posts.id eq queriedPost}) {
+        for (post in Posts.select { Posts.id eq queriedPost }) {
             val currentPost = ThisPost(
                 id = post[Posts.id],
                 disabled = post[Posts.disabled],
@@ -557,6 +607,7 @@ fun getUsers(): MutableList<ReadWriteThisUser> {
     }
     return returnedListOfUsers
 }
+
 fun getAllPosts(): MutableList<ThisPage> {
     connectToDB()
     val returnedPages = mutableListOf<ThisPage>()
@@ -588,6 +639,7 @@ fun getAllPosts(): MutableList<ThisPage> {
     }
     return returnedPages
 }
+
 fun getAllPostsAndPages(): MutableList<CompletePage> {
     connectToDB()
     val returnedPages = mutableListOf<CompletePage>()

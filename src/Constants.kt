@@ -274,7 +274,9 @@ data class AuthUser(
     val group: String,
     val password: String
 )
-
+data class UserNameCheck(
+    val username: String
+)
 data class UserID(
     val id: Int,
     val name: String

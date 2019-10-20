@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath("com.github.jengelman.gradle.plugins:shadow:+")
+        classpath("com.github.jengelman.gradle.plugins:shadow:4.0.4")
 
     }
 }
@@ -35,12 +35,12 @@ repositories {
 }
 
 dependencies {
+    implementation("org.mindrot:jbcrypt:0.4")
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "io.ktor:ktor-server-netty:$ktor_version"
     compile "ch.qos.logback:logback-classic:$logback_version"
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-html-builder:$ktor_version"
-    //compile "org.jetbrains:kotlin-css-jvm:1.0.0-pre.31-kotlin-1.2.41"
     compile "io.ktor:ktor-server-host-common:$ktor_version"
     compile "io.ktor:ktor-gson:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
