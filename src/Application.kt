@@ -7,6 +7,7 @@ import io.ktor.application.install
 import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.gson.gson
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.request.path
@@ -17,6 +18,7 @@ import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
+import java.lang.Error
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -52,6 +54,10 @@ fun Application.module() {
         configureSessionAuth()
         configureFormAuth()
     }
+    install(StatusPages) {
+        statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
+    }
+
 
 
     routing {
@@ -111,7 +117,13 @@ private fun Authentication.Configuration.configureFormAuth() {
         validate { cred: UserPasswordCredential ->
             val userCredentials = verifyUserCredentials(cred.name)
             println("Username: ${cred.name} Password: ${cred.password} : ${userCredentials?.password}")
-            if (userCredentials !== null && BCrypt.checkpw(cred.password, userCredentials?.password)) {
+            var userValidated: Boolean = false
+            try {
+                userValidated = BCrypt.checkpw(cred.password, userCredentials?.password)
+            } catch (e: Throwable) {
+                println(e)
+            }
+            if (userCredentials !== null && userValidated) {
                 println("Session validated....")
                 MySession(id = userCredentials.id, username = userCredentials.username, group = userCredentials.group)
             } else {

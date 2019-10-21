@@ -213,7 +213,7 @@ fun Route.adminAPI() {
             transaction {
                 SchemaUtils.create(Users)
                 Users.insert {
-                    it[disabled] = incomingUser.disabled
+                    it[disabled] = true
                     it[group] = "user"
                     it[createdTime] = incomingUser.createdTime
                     it[username] = incomingUser.username
