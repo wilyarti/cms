@@ -645,7 +645,6 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
     val returnedPages = mutableListOf<CompletePage>()
     transaction {
         SchemaUtils.create(Pages, Posts)
-        val allPosts = Posts.select { Posts.disabled eq false }
         for (page in Pages.select { Pages.disabled eq false }) {
             val currentPage = CompletePage(
                 id = page[Pages.id],
@@ -668,6 +667,12 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
                 likes = page[Pages.likes],
                 posts = mutableListOf<ThisPost>()
             )
+            var allPosts = Posts.select { Posts.disabled eq false }
+            // reverse post order?
+            // normal == 0, reversed == 1
+            if (currentPage.type == 1) {
+                allPosts = Posts.select { Posts.disabled.eq(false) }.orderBy(Posts.id to SortOrder.DESC)
+            }
             for (post in allPosts) {
                 if (post[Posts.pageID] == page[Pages.id]) {
                     val currentPost = ThisPost(
