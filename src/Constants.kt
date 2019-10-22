@@ -4,6 +4,7 @@ package os3
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
 import java.math.BigInteger
+import java.sql.Blob
 
 const val MAXPOSTSPERPAGE  = 5
 data class MySession(val id: Int, val username: String, val group: String) : Principal
@@ -27,6 +28,13 @@ object Group: Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val groupID = integer("groupID") // Groups.id field
     val userID = integer("userID") // Users.id field
+}
+object Files : Table() {
+    // NOT NULLABLE entries
+    val id = integer("id").autoIncrement().primaryKey() // main id
+    val name = varchar("name", length = 150) // page name
+    val path = varchar("path", length = 300) // page name
+
 }
 object Pages : Table() {
     // NOT NULLABLE entries
@@ -97,6 +105,12 @@ object Users : Table() {
     val secondaryGroup = integer("secondaryGroup").nullable()
     val metadata = text("metadata").nullable()
 }
+data class ThisFile(
+    // NOT NULLABLE entries
+    val id: Int, // main id
+    val name: String,
+    val path: String
+)
 
 
 data class ThisPost(

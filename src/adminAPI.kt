@@ -2,16 +2,29 @@ package os3
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
 import io.ktor.request.receive
+import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
+import net.opens3.db_filepath
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 
 fun Route.adminAPI() {
     post("/api/deletePage") {
@@ -66,6 +79,58 @@ fun Route.adminAPI() {
             )
         } catch (e: Throwable) {
             call.respond(Status(success = false, errorMessage = e.toString()))
+        }
+    }
+
+    post("/api/uploadFile") {
+        try {
+            if (!validateAdmin(call)) {
+                throw(error("Error! Prohibited."))
+            }
+            val thisSession = call.sessions.get<MySession>()
+            val creatingUser = getThisUser(thisSession?.id);
+            if (creatingUser === null) {
+                throw(error("ERROR: User ${thisSession?.username} does not exit in database."))
+            }
+            // multipart upload
+            val multipart = call.receiveMultipart()
+            var fileName = ""
+            var videoFile: File? = null
+            var filePath = "somepath"
+            // Processes each part of the multipart input content of the user
+            multipart.forEachPart { part ->
+                if (part is PartData.FormItem) {
+                    if (part.name == "title") {
+                        fileName = part.value
+                    }
+                } else if (part is PartData.FileItem) {
+                    val ext = File(part.originalFileName).extension
+                    val file = File(
+                        "${db_filepath}/",
+                        "upload-${System.currentTimeMillis()}-${thisSession?.id?.hashCode()}-${fileName.hashCode()}.$ext"
+                    )
+                    fileName = "upload-${System.currentTimeMillis()}-${thisSession?.id?.hashCode()}-${fileName.hashCode()}.$ext"
+                    filePath = "${db_filepath}/$fileName"
+                    part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyToSuspend(it) } }
+                    videoFile = file
+                }
+
+                part.dispose()
+            }
+
+            //call.respondRedirect(VideoPage(id))
+            connectToDB()
+            transaction {
+                SchemaUtils.create(Files)
+                Files.insert() {
+                    it[name] = fileName
+                    it[path] = filePath
+                }
+            }
+            call.respond(HttpStatusCode.OK)
+        } catch (e: Throwable) {
+            println(e)
+            call.respond(HttpStatusCode.BadRequest)
         }
     }
     post("/api/addPost") {
@@ -364,7 +429,13 @@ fun Route.adminAPI() {
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
-
+    get("/api/getFiles") {
+        if (validateAdmin(call)) {
+            call.respond(getFiles())
+        } else {
+            call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
+        }
+    }
     get("/api/getPosts") {
         if (validateAdmin(call)) {
             call.respond(getPosts())
@@ -571,7 +642,23 @@ fun getThisUser(userID: Int?): ReadUserInfo? {
     }
     return thisUser
 }
-
+fun getFiles(): MutableList<ThisFile> {
+    connectToDB()
+    val returnedListOfFiles = mutableListOf<ThisFile>()
+    transaction {
+        SchemaUtils.create(Users)
+        for (file in Files.selectAll()) {
+            val currentFile = ThisFile(
+                // NOT NULLABLE entries
+                id = file[Files.id],
+                name = file[Files.name],
+                path = file[Files.path]
+                )
+            returnedListOfFiles.add(currentFile)
+        }
+    }
+    return returnedListOfFiles
+}
 fun getUsers(): MutableList<ReadWriteThisUser> {
     connectToDB()
     val returnedListOfUsers = mutableListOf<ReadWriteThisUser>()
@@ -703,4 +790,35 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
         }
     }
     return returnedPages
+}
+/**
+ * https://github.com/ktorio/ktor-samples/blob/master/app/youkube/src/Upload.kt
+ * Utility boilerplate method that suspending,
+ * copies a [this] [InputStream] into an [out] [OutputStream] in a separate thread.
+ *
+ * [bufferSize] and [yieldSize] allows to control how and when the suspending is performed.
+ * The [dispatcher] allows to specify where will be this executed (for example a specific thread pool).
+ */
+suspend fun InputStream.copyToSuspend(
+    out: OutputStream,
+    bufferSize: Int = DEFAULT_BUFFER_SIZE,
+    yieldSize: Int = 4 * 1024 * 1024,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+): Long {
+    return withContext(dispatcher) {
+        val buffer = ByteArray(bufferSize)
+        var bytesCopied = 0L
+        var bytesAfterYield = 0L
+        while (true) {
+            val bytes = read(buffer).takeIf { it >= 0 } ?: break
+            out.write(buffer, 0, bytes)
+            if (bytesAfterYield >= yieldSize) {
+                yield()
+                bytesAfterYield %= yieldSize
+            }
+            bytesCopied += bytes
+            bytesAfterYield += bytes
+        }
+        return@withContext bytesCopied
+    }
 }

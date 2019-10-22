@@ -8,16 +8,20 @@ import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.files
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
+import io.ktor.http.content.staticRootFolder
 import io.ktor.request.path
 import io.ktor.response.respondRedirect
 import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
+import net.opens3.db_filepath
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
+import java.io.File
 import java.lang.Error
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -58,7 +62,9 @@ fun Application.module() {
         statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
     }
 
-
+    val root = File("sitefiles").takeIf { it.exists() }
+        ?: File("files").takeIf { it.exists() }
+        ?: error("Can't locate files folder")
 
     routing {
         // setup routes
@@ -70,6 +76,9 @@ fun Application.module() {
         static("/") {
             //defaultResource("main.html", "static")
             resources("static")
+        }
+        static("/files/") {
+            files(root)
         }
     }
 }

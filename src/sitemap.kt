@@ -8,13 +8,14 @@ import io.ktor.response.respondText
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import net.opens3.ourUrl
 
 internal fun Route.siteMap() {
 
     get("/sitemap.xml") {
         var xml =
             """<?xml version="1.0" encoding="UTF-8"?>
-                <!-- generator="opens3.net" -->
+                <!-- generator="$ourUrl" -->
                 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
                         xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
                         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
@@ -25,7 +26,7 @@ internal fun Route.siteMap() {
                 var thisPage = """
                         <url>
                             <loc>
-                            https://opens3.net/post/${page.posts[postIndex].id}
+                            https://$ourUrl/post/${page.posts[postIndex].id}
                             </loc>
                             <mobile:mobile/>
                             <lastmod>${page.posts[postIndex].createdTime}</lastmod>
