@@ -1,7 +1,9 @@
 // Contains the routes for the Content Management System in the /home route.
 package os3
 
+import io.ktor.application.Application
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application.Xml
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -9,35 +11,56 @@ import io.ktor.response.respondTextWriter
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import net.opens3.ourUrl
+import javax.management.monitor.StringMonitor
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.ktor.response.respondBytes
+
+/**
+ *
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+<url>
+
+<loc>http://www.example.com/</loc>
+
+<lastmod>2005-01-01</lastmod>
+
+<changefreq>monthly</changefreq>
+
+<priority>0.8</priority>
+
+</url>
+
+</urlset>
+ */
+data class UrlSet(
+    val loc: String,
+    val lastmod: String,
+    val changefreq: String,
+    val priority: String
+)
+
 
 internal fun Route.siteMap() {
 
     get("/sitemap.xml") {
-        var xml =
-            """<?xml version="1.0" encoding="UTF-8"?>
-                <!-- generator="$ourUrl" -->
-                <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
-                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-                        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">""".trimIndent()
+        val mapper = jacksonObjectMapper()
         var pages = getAllPostsAndPages()
+        var thisUrlSet = mutableListOf<UrlSet>()
         for ((index, page) in pages.withIndex()) {
             for ((postIndex) in page.posts.withIndex()) {
-                var thisPage = """
-                        <url>
-                            <loc>
-                            https://$ourUrl/post/${page.posts[postIndex].id}
-                            </loc>
-                            <mobile:mobile/>
-                            <lastmod>${page.posts[postIndex].createdTime}</lastmod>
-                            <changefreq>monthly</changefreq>
-                        </url>
-                        """.trimIndent();
-                xml += thisPage;
+                var thisUrl = UrlSet(
+                    loc = "https://$ourUrl/post/${page.posts[postIndex].id}",
+                    lastmod = page.posts[postIndex].createdTime,
+                    changefreq = "monthly",
+                    priority = "1.0"
+                )
+                thisUrlSet.add(thisUrl)
             }
         }
-        xml += "</urlset>"
-        call.respondText(contentType = Xml) { xml }
+        call.respond(thisUrlSet)
     }
 
 }

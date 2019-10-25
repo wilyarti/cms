@@ -68,6 +68,7 @@ dependencies {
     compile 'khttp:khttp:0.1.0'
     compile 'joda-time:joda-time:2.10.4'
     compile "io.ktor:ktor-metrics:$ktor_version"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
 }
 shadowJar {
     manifest {
