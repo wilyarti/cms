@@ -7,22 +7,21 @@ import io.ktor.application.install
 import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.gson.gson
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.files
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
-import io.ktor.http.content.staticRootFolder
 import io.ktor.request.path
 import io.ktor.response.respondRedirect
 import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
-import net.opens3.db_filepath
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
 import java.io.File
-import java.lang.Error
+
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -48,6 +47,7 @@ fun Application.module() {
         gson {
         }
     }
+
     install(Sessions) {
         // We need to save auth data in a cookie, which we configure here.
         // https://ktor.io/servers/features/sessions.html
@@ -134,7 +134,11 @@ private fun Authentication.Configuration.configureFormAuth() {
             }
             if (userCredentials !== null && userValidated) {
                 println("Session validated....")
-                MySession(id = userCredentials.id, username = userCredentials.username, group = userCredentials.group)
+                MySession(
+                    id = userCredentials.id,
+                    username = userCredentials.username,
+                    group = userCredentials.group
+                )
             } else {
                 println("Invalid login....")
                 null

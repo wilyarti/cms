@@ -1,19 +1,13 @@
 // Contains the routes for the Content Management System in the /home route.
 package os3
 
-import io.ktor.application.Application
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.ContentType.Application.Xml
-import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.response.respondTextWriter
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import net.opens3.ourUrl
-import javax.management.monitor.StringMonitor
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.response.respondBytes
 
 /**
  *
@@ -35,32 +29,36 @@ import io.ktor.response.respondBytes
 
 </urlset>
  */
-data class UrlSet(
+data class url(
     val loc: String,
     val lastmod: String,
     val changefreq: String,
     val priority: String
 )
 
+data class Sitemap (
+    val urlset: List<url>
+)
 
 internal fun Route.siteMap() {
 
     get("/sitemap.xml") {
-        val mapper = jacksonObjectMapper()
+        val mapper = XmlMapper()
         var pages = getAllPostsAndPages()
-        var thisUrlSet = mutableListOf<UrlSet>()
+        var urlset = mutableListOf<url>()
         for ((index, page) in pages.withIndex()) {
             for ((postIndex) in page.posts.withIndex()) {
-                var thisUrl = UrlSet(
+                var thisUrl = url(
                     loc = "https://$ourUrl/post/${page.posts[postIndex].id}",
                     lastmod = page.posts[postIndex].createdTime,
                     changefreq = "monthly",
                     priority = "1.0"
                 )
-                thisUrlSet.add(thisUrl)
+                urlset.add(thisUrl)
             }
         }
-        call.respond(thisUrlSet)
+        val sitemap = Sitemap(urlset = urlset)
+        call.respondText(ContentType.Application.Xml) { mapper.writeValueAsString(sitemap) }
     }
 
 }
