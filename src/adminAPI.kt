@@ -30,7 +30,8 @@ fun Route.adminAPI() {
     post("/api/deletePage") {
         try {
             if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val deletedPage = call.receive<ThisPage>()
             connectToDB()
@@ -40,13 +41,15 @@ fun Route.adminAPI() {
             }
             call.respond(Status(success = true, errorMessage = "Successfully deleted page \"${deletedPage.name}\""))
         } catch (e: Throwable) {
+            call.response.status(HttpStatusCode.InternalServerError)
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
     post("/api/deletePost") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
 
             val deletedPost = call.receive<ThisPage>()
@@ -62,8 +65,9 @@ fun Route.adminAPI() {
     }
     post("/api/deleteUser") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingUser = call.receive<ReadWriteThisUser>()
             connectToDB()
@@ -84,8 +88,9 @@ fun Route.adminAPI() {
 
     post("/api/uploadFile") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -135,8 +140,9 @@ fun Route.adminAPI() {
     }
     post("/api/addPost") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -175,8 +181,9 @@ fun Route.adminAPI() {
     }
     post("/api/addPage") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -216,9 +223,9 @@ fun Route.adminAPI() {
     post("/api/addUser") {
         try {
             //TODO implement missing fields
-            //TODO implement password salt
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameAvailable(incomingUser.username)) {
@@ -267,7 +274,6 @@ fun Route.adminAPI() {
     post("/api/userSignUp") {
         try {
             //TODO implement missing fields
-            //TODO implement password salt
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameAvailable(incomingUser.username)) {
                 throw(error("Username is not available."));
@@ -302,13 +308,15 @@ fun Route.adminAPI() {
             }
             call.respond(Status(success = true, errorMessage = "Successfully added user \"${incomingUser.username}\""))
         } catch (e: Throwable) {
+            call.response.status(HttpStatusCode.InternalServerError)
             call.respond(Status(success = false, errorMessage = e.toString()))
         }
     }
     post("/api/updateUser") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameChangeAvailable(incomingUser.username, incomingUser.id)) {
@@ -351,8 +359,9 @@ fun Route.adminAPI() {
     }
     post("/api/updatePage") {
         try {
-            if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+if (!validateAdmin(call)) {
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingPage = call.receive<ThisPage>()
             connectToDB()
@@ -384,7 +393,8 @@ fun Route.adminAPI() {
     post("/api/updatePost") {
         try {
             if (!validateAdmin(call)) {
-                throw(error("Error! Prohibited."))
+                call.response.status(HttpStatusCode.Forbidden)
+                call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
@@ -426,6 +436,7 @@ fun Route.adminAPI() {
         if (validateAdmin(call)) {
             call.respond(getAllPostsAndPages())
         } else {
+            call.response.status(HttpStatusCode.Forbidden)
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
@@ -433,6 +444,7 @@ fun Route.adminAPI() {
         if (validateAdmin(call)) {
             call.respond(getFiles())
         } else {
+            call.response.status(HttpStatusCode.Forbidden)
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
@@ -440,6 +452,7 @@ fun Route.adminAPI() {
         if (validateAdmin(call)) {
             call.respond(getPosts())
         } else {
+            call.response.status(HttpStatusCode.Forbidden)
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
@@ -448,6 +461,7 @@ fun Route.adminAPI() {
         if (validateAdmin(call)) {
             call.respond(getPages())
         } else {
+            call.response.status(HttpStatusCode.Forbidden)
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
@@ -456,6 +470,7 @@ fun Route.adminAPI() {
         if (validateAdmin(call)) {
             call.respond(getUsers())
         } else {
+            call.response.status(HttpStatusCode.Forbidden)
             call.respond(Status(success = false, errorMessage = "ERROR: Access denied."))
         }
     }
