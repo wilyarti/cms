@@ -9,7 +9,6 @@ import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.files
-import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.request.path
 import io.ktor.response.respondRedirect
@@ -17,6 +16,8 @@ import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
+import net.opens3.STATIC_FILESTORAGE
+import net.opens3.STATIC_WWW
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
 import java.io.File
@@ -61,10 +62,11 @@ fun Application.module() {
         statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
     }
 
-    val root = File("sitefiles").takeIf { it.exists() }
+    val fileStorage = File(STATIC_FILESTORAGE).takeIf { it.exists() }
         ?: File("files").takeIf { it.exists() }
         ?: error("Can't locate files folder")
-
+    val wwwRoot = File(STATIC_WWW).takeIf { it.exists() }
+        ?: error("Can't locate files folder")
     routing {
         // setup routes
         homepageRoute()
@@ -73,11 +75,10 @@ fun Application.module() {
         profileRoute()
         // our static files
         static("/") {
-            //defaultResource("main.html", "static")
-            resources("static")
+            files(wwwRoot)
         }
         static("/files/") {
-            files(root)
+            files(fileStorage)
         }
     }
 }

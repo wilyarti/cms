@@ -1,21 +1,20 @@
 // Various functions for the web apps.
 package os3
 
-import net.opens3.db_address
-import net.opens3.db_name
-import net.opens3.db_password
-import net.opens3.db_username
+import net.opens3.DB_ADDRESS
+import net.opens3.DB_NAME
+import net.opens3.DB_PASSWORD
+import net.opens3.DB_USERNAME
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlin.and
 
 
 fun connectToDB(): Unit {
     Database.connect(
-        "jdbc:mysql://${db_address}/${db_name}",
+        "jdbc:mysql://${DB_ADDRESS}/${DB_NAME}",
         "com.mysql.jdbc.Driver",
-        user = db_username,
-        password = db_password
+        user = DB_USERNAME,
+        password = DB_PASSWORD
     )
 }
 

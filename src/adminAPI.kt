@@ -18,7 +18,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import net.opens3.db_filepath
+import net.opens3.STATIC_FILESTORAGE
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
@@ -47,7 +47,7 @@ fun Route.adminAPI() {
     }
     post("/api/deletePost") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
@@ -65,7 +65,7 @@ if (!validateAdmin(call)) {
     }
     post("/api/deleteUser") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
@@ -88,20 +88,25 @@ if (!validateAdmin(call)) {
 
     post("/api/uploadFile") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
             val creatingUser = getThisUser(thisSession?.id);
             if (creatingUser === null) {
-                throw(error("ERROR: User ${thisSession?.username} does not exit in database."))
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.respond(
+                    Status(
+                        success = false,
+                        errorMessage = "ERROR: User ${thisSession?.username} does not exit in database."
+                    )
+                )
             }
             // multipart upload
             val multipart = call.receiveMultipart()
             var fileName = ""
-            var videoFile: File? = null
-            var filePath = "somepath"
+            var filePath = "some path"
             // Processes each part of the multipart input content of the user
             multipart.forEachPart { part ->
                 if (part is PartData.FormItem) {
@@ -111,23 +116,21 @@ if (!validateAdmin(call)) {
                 } else if (part is PartData.FileItem) {
                     val ext = File(part.originalFileName).extension
                     val file = File(
-                        "${db_filepath}/",
+                        "${STATIC_FILESTORAGE}/",
                         "upload-${System.currentTimeMillis()}-${thisSession?.id?.hashCode()}-${fileName.hashCode()}.$ext"
                     )
-                    fileName = "upload-${System.currentTimeMillis()}-${thisSession?.id?.hashCode()}-${fileName.hashCode()}.$ext"
-                    filePath = "${db_filepath}/$fileName"
+                    fileName =
+                        "upload-${System.currentTimeMillis()}-${thisSession?.id?.hashCode()}-${fileName.hashCode()}.$ext"
+                    filePath = "${STATIC_FILESTORAGE}/$fileName"
                     part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyToSuspend(it) } }
-                    videoFile = file
                 }
-
                 part.dispose()
             }
-
             //call.respondRedirect(VideoPage(id))
             connectToDB()
             transaction {
                 SchemaUtils.create(Files)
-                Files.insert() {
+                Files.insert {
                     it[name] = fileName
                     it[path] = filePath
                 }
@@ -140,7 +143,7 @@ if (!validateAdmin(call)) {
     }
     post("/api/addPost") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
@@ -148,17 +151,23 @@ if (!validateAdmin(call)) {
             val creatingUser = getThisUser(thisSession?.id);
             val incomingPost = call.receive<ThisPost>()
             if (creatingUser === null) {
-                throw(error("ERROR: User ${thisSession?.username} does not exit in database."))
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.respond(
+                    Status(
+                        success = false,
+                        errorMessage = "ERROR: User ${thisSession?.username} does not exit in database."
+                    )
+                )
             }
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                Posts.insert() {
+                Posts.insert {
                     it[disabled] = incomingPost.disabled
                     it[name] = incomingPost.name
                     it[icon] = incomingPost.icon
                     it[pageID] = incomingPost.pageID
-                    it[author] = creatingUser.username
+                    it[author] = creatingUser!!.username
                     it[createdTime] = incomingPost.createdTime
                     it[timeZone] = incomingPost.timeZone
                     it[contents] = incomingPost.contents
@@ -181,7 +190,7 @@ if (!validateAdmin(call)) {
     }
     post("/api/addPage") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
@@ -189,17 +198,23 @@ if (!validateAdmin(call)) {
             val creatingUser = getThisUser(thisSession?.id);
             val incomingPage = call.receive<ThisPage>()
             if (creatingUser === null) {
-                throw(error("ERROR: User ${incomingPage.name} does not exit in database."))
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.respond(
+                    Status(
+                        success = false,
+                        errorMessage = "ERROR: User ${thisSession?.username} does not exit in database."
+                    )
+                )
             }
             connectToDB()
             transaction {
                 SchemaUtils.create(Pages)
-                Pages.insert() {
+                Pages.insert {
                     it[disabled] = incomingPage.disabled
                     it[name] = incomingPage.name
                     it[icon] = incomingPage.icon
                     it[pageID] = incomingPage.pageID
-                    it[author] = creatingUser.username
+                    it[author] = creatingUser!!.username
                     it[createdTime] = incomingPage.createdTime
                     it[timeZone] = incomingPage.timeZone
                     // NULLABLE entries below
@@ -223,13 +238,14 @@ if (!validateAdmin(call)) {
     post("/api/addUser") {
         try {
             //TODO implement missing fields
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameAvailable(incomingUser.username)) {
-                throw(error("Username is not available."));
+                call.response.status(HttpStatusCode.BadRequest)
+                call.respond(Status(success = false, errorMessage = "ERROR: Username is not available."))
             }
             connectToDB()
             transaction {
@@ -276,7 +292,8 @@ if (!validateAdmin(call)) {
             //TODO implement missing fields
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameAvailable(incomingUser.username)) {
-                throw(error("Username is not available."));
+                call.response.status(HttpStatusCode.BadRequest)
+                call.respond(Status(success = false, errorMessage = "ERROR: Username is not available."))
             }
             val saltyPassword = BCrypt.gensalt()
             val passwordHashed = BCrypt.hashpw(incomingUser.password, saltyPassword)
@@ -314,13 +331,14 @@ if (!validateAdmin(call)) {
     }
     post("/api/updateUser") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val incomingUser = call.receive<CreateThisUser>()
             if (!isUsernameChangeAvailable(incomingUser.username, incomingUser.id)) {
-                throw(error("Username is not available."));
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.respond(Status(success = false, errorMessage = "ERROR: Username is not available."))
             }
             connectToDB()
             transaction {
@@ -359,7 +377,7 @@ if (!validateAdmin(call)) {
     }
     post("/api/updatePage") {
         try {
-if (!validateAdmin(call)) {
+            if (!validateAdmin(call)) {
                 call.response.status(HttpStatusCode.Forbidden)
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
@@ -397,10 +415,16 @@ if (!validateAdmin(call)) {
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
-            val creatingUser = getThisUser(thisSession?.id);
+            val creatingUser = getThisUser(thisSession?.id)
             val incomingPost = call.receive<ThisPost>()
             if (creatingUser === null) {
-                throw(error("ERROR: User ${thisSession?.username} does not exit in database."))
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.respond(
+                    Status(
+                        success = false,
+                        errorMessage = "ERROR: User ${thisSession?.username} does not exit in database."
+                    )
+                )
             }
             connectToDB()
             transaction {
@@ -410,7 +434,7 @@ if (!validateAdmin(call)) {
                     it[name] = incomingPost.name
                     it[icon] = incomingPost.icon
                     it[pageID] = incomingPost.pageID
-                    it[author] = creatingUser.username
+                    it[author] = creatingUser!!.username
                     it[createdTime] = incomingPost.createdTime
                     it[timeZone] = incomingPost.timeZone
                     it[contents] = incomingPost.contents
@@ -587,7 +611,7 @@ fun getPosts(): MutableList<ThisPost> {
 
 fun isUsernameAvailable(username: String?): Boolean {
     connectToDB()
-    var available = true;
+    var available = true
     // check if our principal is null. It shouldn't be
     if (username === null) {
         return false
@@ -596,7 +620,7 @@ fun isUsernameAvailable(username: String?): Boolean {
     transaction {
         SchemaUtils.create(Users)
         for (user in Users.select { Users.username eq username }) {
-            available = false;
+            available = false
         }
     }
     return available
@@ -604,8 +628,7 @@ fun isUsernameAvailable(username: String?): Boolean {
 
 fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean {
     connectToDB()
-    var available = true;
-    // check if our principal is null. It shouldn't be
+    var available = true // check if our principal is null. It shouldn't be
     if (username === null || userID === null) {
         return false
     }
@@ -613,7 +636,7 @@ fun isUsernameChangeAvailable(username: String?, userID: Int?): Boolean {
     transaction {
         SchemaUtils.create(Users)
         for (user in Users.select { Users.username.eq(username) and Users.id.neq(userID) }) {
-            available = false;
+            available = false
         }
     }
     return available
@@ -657,6 +680,7 @@ fun getThisUser(userID: Int?): ReadUserInfo? {
     }
     return thisUser
 }
+
 fun getFiles(): MutableList<ThisFile> {
     connectToDB()
     val returnedListOfFiles = mutableListOf<ThisFile>()
@@ -668,12 +692,13 @@ fun getFiles(): MutableList<ThisFile> {
                 id = file[Files.id],
                 name = file[Files.name],
                 path = file[Files.path]
-                )
+            )
             returnedListOfFiles.add(currentFile)
         }
     }
     return returnedListOfFiles
 }
+
 fun getUsers(): MutableList<ReadWriteThisUser> {
     connectToDB()
     val returnedListOfUsers = mutableListOf<ReadWriteThisUser>()
@@ -806,6 +831,7 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
     }
     return returnedPages
 }
+
 /**
  * https://github.com/ktorio/ktor-samples/blob/master/app/youkube/src/Upload.kt
  * Utility boilerplate method that suspending,
