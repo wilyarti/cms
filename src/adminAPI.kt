@@ -711,7 +711,6 @@ fun getFiles(): MutableList<ThisFile> {
         SchemaUtils.create(Users)
         for (file in Files.selectAll()) {
             val currentFile = ThisFile(
-                // NOT NULLABLE entries
                 id = file[Files.id],
                 name = file[Files.name],
                 path = file[Files.path]
@@ -856,13 +855,17 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
 }
 
 fun ping(pageToPing: Ping): Boolean {
-    runBlocking {
-        val client = HttpClient(Apache) {
+    try {
+        runBlocking {
+            val client = HttpClient(Apache) {
+            }
+            val urlString =
+                "https://pingomatic.com/ping/?title=${pageToPing.title}&blogurl=${pageToPing.blogurl}&rssurl=${pageToPing.rssurl}&chk_blogs=${pageToPing.chk_blogs}&chk_feedburner=${pageToPing.chk_feedburner}&chk_tailrank=${pageToPing.chk_tailrank}&chk_superfeedr=${pageToPing.chk_superfeedr}"
+            println(urlString)
+            val htmlContent = client.get<String>(urlString)
         }
-        val urlString =
-            "https://pingomatic.com/ping/?title=${pageToPing.title}&blogurl=${pageToPing.blogurl}&rssurl=${pageToPing.rssurl}&chk_blogs=${pageToPing.chk_blogs}&chk_feedburner=${pageToPing.chk_feedburner}&chk_tailrank=${pageToPing.chk_tailrank}&chk_superfeedr=${pageToPing.chk_superfeedr}"
-        println(urlString)
-        val htmlContent = client.get<String>(urlString)
+    } catch (e: Error) {
+        return false
     }
     return true
 }

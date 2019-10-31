@@ -28,6 +28,20 @@ internal fun Route.dynamicPages() {
         }
         call.respondHtml {
             head {
+                unsafe {
+                    raw(
+                        """<!-- Global site tag (gtag.js) - Google Analytics -->
+                        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151251135-1"></script>
+                        <script>
+                          window.dataLayer = window.dataLayer || [];
+                          function gtag(){dataLayer.push(arguments);}
+                          gtag('js', new Date());
+                        
+                          gtag('config', 'UA-151251135-1');
+                        </script>
+                        """.trimIndent()
+                    )
+                }
                 link(
                     rel = "stylesheet",
                     href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
@@ -174,6 +188,20 @@ internal fun Route.dynamicPages() {
         println("pagenumber $pageNumber pageRange $postRange")
         call.respondHtml {
             head {
+                unsafe {
+                    raw(
+                        """<!-- Global site tag (gtag.js) - Google Analytics -->
+                        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151251135-1"></script>
+                        <script>
+                          window.dataLayer = window.dataLayer || [];
+                          function gtag(){dataLayer.push(arguments);}
+                          gtag('js', new Date());
+                        
+                          gtag('config', 'UA-151251135-1');
+                        </script>
+                        """.trimIndent()
+                    )
+                }
                 link(
                     rel = "stylesheet",
                     href = "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",

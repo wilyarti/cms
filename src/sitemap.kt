@@ -8,6 +8,16 @@ import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import net.opens3.OUR_URL
+import net.opens3.STATIC_WWW
+import org.joda.time.DateTime
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributes
+import org.joda.time.format.DateTimeFormat
+
+
+
 
 /**
  * <image:image>
@@ -48,15 +58,38 @@ internal fun Route.siteMap() {
         """.trimIndent()
         for ((index, page) in pages.withIndex()) {
             for ((postIndex) in page.posts.withIndex()) {
+                val fmt = DateTimeFormat.forPattern("YYYY-MM-dd")
+                val time = DateTime(page.posts[postIndex].createdTime)
                 var thisUrl = url(
                     //TODO create SQL table for images
                     //TODO implement image scraping on update() and addPost() functions so the sitemap works
                     loc = "https://$OUR_URL/post/${page.posts[postIndex].id}",
-                    lastmod = page.posts[postIndex].createdTime,
+                    lastmod = fmt.print(time),
                     changefreq = "monthly",
                     priority = "1.0"
                 )
                 ourXML += mapper.writeValueAsString(thisUrl) + "\n"
+            }
+        }
+        File(STATIC_WWW).walk().forEach {
+            val pattern = "..html$".toRegex()
+            if (pattern.containsMatchIn(it.absolutePath)) {
+                try {
+                    val path = Paths.get(it.absolutePath)
+                    val attr: BasicFileAttributes
+                    attr = Files.readAttributes(path, BasicFileAttributes::class.java)
+                    val fmt = DateTimeFormat.forPattern("YYYY-MM-dd")
+                    val time = DateTime(attr.creationTime().toString())
+                    var thisUrl = url(
+                        loc = "https://$OUR_URL/${it.name}",
+                        lastmod = fmt.print(time),
+                        changefreq = "monthly",
+                        priority = "1.0"
+                    )
+                    ourXML += mapper.writeValueAsString(thisUrl) + "\n"
+                } catch (e:Error) {
+                    println(e)
+                }
             }
         }
         ourXML += "</urlset>"
