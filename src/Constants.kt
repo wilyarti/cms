@@ -6,7 +6,8 @@ import org.jetbrains.exposed.sql.Table
 import java.math.BigInteger
 import java.sql.Blob
 
-const val MAXPOSTSPERPAGE  = 5
+const val MAXPOSTSPERPAGE = 5
+
 data class MySession(val id: Int, val username: String, val group: String) : Principal
 
 /** I made the decision to introduce NULLABLE rows into the SQL database.
@@ -19,16 +20,17 @@ data class MySession(val id: Int, val username: String, val group: String) : Pri
  *
  * I hope I do not regret this decision, as it will require me to fill the code with NULL safe calls.
  */
-object Groups: Table() {
+object Groups : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val groupName = varchar("groupName", length = 150) // group name
 }
 
-object Group: Table() {
+object Group : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val groupID = integer("groupID") // Groups.id field
     val userID = integer("userID") // Users.id field
 }
+
 object Files : Table() {
     // NOT NULLABLE entries
     val id = integer("id").autoIncrement().primaryKey() // main id
@@ -36,6 +38,7 @@ object Files : Table() {
     val path = varchar("path", length = 300) // page name
 
 }
+
 object Pages : Table() {
     // NOT NULLABLE entries
     val id = integer("id").autoIncrement().primaryKey() // main id
@@ -57,6 +60,7 @@ object Pages : Table() {
     val type = integer("type").nullable()
     val likes = integer("likes").nullable()
 }
+
 object Posts : Table() {
     // NOT NULLABLE entries
     val id = integer("id").autoIncrement().primaryKey() // main id
@@ -105,6 +109,7 @@ object Users : Table() {
     val secondaryGroup = integer("secondaryGroup").nullable()
     val metadata = text("metadata").nullable()
 }
+
 data class ThisFile(
     // NOT NULLABLE entries
     val id: Int, // main id
@@ -126,7 +131,7 @@ data class ThisPost(
     val contents: String,
     // NULLABLE entries below
     val parentID: Int?, // allow tree structure (stipulate parent)
-    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val priorityBit: Int?, // to re-order pages and sticky bit
     val group: String?,
     val countryOfOrigin: String?,
     val language: String?,
@@ -148,7 +153,7 @@ data class ThisPage(
     val timeZone: String, // timezone
     // NULLABLE entries below
     val parentID: Int?, // allow tree structure (stipulate parent)
-    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val priorityBit: Int?, // to re-order pages and sticky bit
     val group: String?,
     val countryOfOrigin: String?,
     val language: String?,
@@ -170,7 +175,7 @@ data class CompletePage(
     val timeZone: String, // timezone
     // NULLABLE entries below
     val parentID: Int?, // allow tree structure (stipulate parent)
-    val priorityBit:  Int?, // to re-order pages and sticky bit
+    val priorityBit: Int?, // to re-order pages and sticky bit
     val group: String?,
     val countryOfOrigin: String?,
     val language: String?,
@@ -181,10 +186,11 @@ data class CompletePage(
     val posts: MutableList<ThisPost>
 )
 
-data class Status (
+data class Status(
     val success: Boolean,
     val errorMessage: String
 )
+
 data class JsonReq(
     val url: String
 )
@@ -192,6 +198,7 @@ data class JsonReq(
 data class Success(
     val success: Boolean
 )
+
 /**
  * The Users SQL table should only be accessed through the correct data classes:
  * CreateThisUser()
@@ -233,6 +240,7 @@ data class ReadUserInfo(
     val secondaryGroup: Int?,
     val metadata: String?
 )
+
 data class CreateThisUser(
     // NOT NULLABLE entries
     val id: Int,
@@ -258,6 +266,7 @@ data class CreateThisUser(
     val secondaryGroup: Int?,
     val metadata: String?
 )
+
 data class ReadWriteThisUser(
     // NOT NULLABLE entries
     val id: Int,
@@ -288,9 +297,11 @@ data class AuthUser(
     val group: String,
     val password: String
 )
+
 data class UserNameCheck(
     val username: String
 )
+
 data class UserID(
     val id: Int,
     val name: String
@@ -302,6 +313,27 @@ data class ThisSet(
     val weight: Int,
     val repetitions: Int,
     val createdTime: String
+)
+
+/**
+ * PingOmatic get request, with parameters in URL.
+title=Statistics
+blogurl=https%3A%2F%2Fopens3.net%2Fhome%2F1
+rssurl=http%3A%2F%2F
+chk_blogs=on
+chk_feedburner=on
+chk_tailrank=on
+chk_superfeedr=on
+ */
+
+data class Ping(
+    val title: String,
+    val blogurl: String,
+    val rssurl: String,
+    val chk_blogs: String,
+    val chk_feedburner: String,
+    val chk_tailrank: String,
+    val chk_superfeedr: String
 )
 
 object FormFields {

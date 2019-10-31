@@ -2,6 +2,9 @@ package os3
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
@@ -14,10 +17,8 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
+import net.opens3.OUR_URL
 import net.opens3.STATIC_FILESTORAGE
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -162,7 +163,7 @@ fun Route.adminAPI() {
             connectToDB()
             transaction {
                 SchemaUtils.create(Posts)
-                Posts.insert {
+                val insertedPost = Posts.insert {
                     it[disabled] = incomingPost.disabled
                     it[name] = incomingPost.name
                     it[icon] = incomingPost.icon
@@ -181,7 +182,18 @@ fun Route.adminAPI() {
                     it[metadata] = null
                     it[type] = null
                     it[likes] = null
-                }
+                } get Posts.id
+                ping(
+                    Ping(
+                        title = incomingPost.name,
+                        rssurl = "https://",
+                        blogurl = "https://$OUR_URL/post/${insertedPost}",
+                        chk_blogs = "on",
+                        chk_feedburner = "on",
+                        chk_superfeedr = "on",
+                        chk_tailrank = "on"
+                    )
+                )
             }
             call.respond(Status(success = true, errorMessage = "Successfully added post \"${incomingPost.name}\""))
         } catch (e: Throwable) {
@@ -449,6 +461,17 @@ fun Route.adminAPI() {
                     it[type] = null
                     it[likes] = null
                 }
+                ping(
+                    Ping(
+                        title = incomingPost.name,
+                        rssurl = "https://",
+                        blogurl = "https://$OUR_URL/post/${incomingPost.id}",
+                        chk_blogs = "on",
+                        chk_feedburner = "on",
+                        chk_superfeedr = "on",
+                        chk_tailrank = "on"
+                    )
+                )
             }
             call.respond(Status(success = true, errorMessage = "Successfully updated post \"${incomingPost.name}\""))
         } catch (e: Throwable) {
@@ -830,6 +853,18 @@ fun getAllPostsAndPages(): MutableList<CompletePage> {
         }
     }
     return returnedPages
+}
+
+fun ping(pageToPing: Ping): Boolean {
+    runBlocking {
+        val client = HttpClient(Apache) {
+        }
+        val urlString =
+            "https://pingomatic.com/ping/?title=${pageToPing.title}&blogurl=${pageToPing.blogurl}&rssurl=${pageToPing.rssurl}&chk_blogs=${pageToPing.chk_blogs}&chk_feedburner=${pageToPing.chk_feedburner}&chk_tailrank=${pageToPing.chk_tailrank}&chk_superfeedr=${pageToPing.chk_superfeedr}"
+        println(urlString)
+        val htmlContent = client.get<String>(urlString)
+    }
+    return true
 }
 
 /**
