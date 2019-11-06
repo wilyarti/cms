@@ -314,6 +314,9 @@ data class ThisSet(
     val repetitions: Int,
     val createdTime: String
 )
+data class jsonReq(
+    val url: String
+)
 
 /**
  * PingOmatic get request, with parameters in URL.

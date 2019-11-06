@@ -22,7 +22,7 @@ internal fun Route.dynamicPages() {
             return@get call.respondRedirect("/error404.html", permanent = false)
         }
         val pageData = getAllPostsAndPages()
-        val pageLookup = mutableMapOf<Int, CompletePage>();
+        val pageLookup = mutableMapOf<Int, CompletePage>()
         for ((index) in pageData.withIndex()) {
             pageLookup[pageData[index].id] = pageData[index]
         }

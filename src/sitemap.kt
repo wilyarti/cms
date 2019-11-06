@@ -80,7 +80,7 @@ internal fun Route.siteMap() {
                     attr = Files.readAttributes(path, BasicFileAttributes::class.java)
                     val fmt = DateTimeFormat.forPattern("YYYY-MM-dd")
                     val time = DateTime(attr.creationTime().toString())
-                    var thisUrl = url(
+                    val thisUrl = url(
                         loc = "https://$OUR_URL/${it.name}",
                         lastmod = fmt.print(time),
                         changefreq = "monthly",

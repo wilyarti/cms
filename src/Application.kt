@@ -126,7 +126,7 @@ private fun Authentication.Configuration.configureFormAuth() {
         validate { cred: UserPasswordCredential ->
             val userCredentials = verifyUserCredentials(cred.name)
             println("Username: ${cred.name} Password: ${cred.password} : ${userCredentials?.password}")
-            var userValidated: Boolean = false
+            var userValidated = false
             try {
                 userValidated = BCrypt.checkpw(cred.password, userCredentials?.password)
             } catch (e: Throwable) {

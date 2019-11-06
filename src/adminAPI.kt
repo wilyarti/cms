@@ -94,7 +94,7 @@ fun Route.adminAPI() {
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
-            val creatingUser = getThisUser(thisSession?.id);
+            val creatingUser = getThisUser(thisSession?.id)
             if (creatingUser === null) {
                 call.response.status(HttpStatusCode.Unauthorized)
                 call.respond(
@@ -149,7 +149,7 @@ fun Route.adminAPI() {
                 call.respond(Status(success = false, errorMessage = "Access denied."))
             }
             val thisSession = call.sessions.get<MySession>()
-            val creatingUser = getThisUser(thisSession?.id);
+            val creatingUser = getThisUser(thisSession?.id)
             val incomingPost = call.receive<ThisPost>()
             if (creatingUser === null) {
                 call.response.status(HttpStatusCode.Unauthorized)
@@ -862,7 +862,7 @@ fun ping(pageToPing: Ping): Boolean {
             val urlString =
                 "https://pingomatic.com/ping/?title=${pageToPing.title}&blogurl=${pageToPing.blogurl}&rssurl=${pageToPing.rssurl}&chk_blogs=${pageToPing.chk_blogs}&chk_feedburner=${pageToPing.chk_feedburner}&chk_tailrank=${pageToPing.chk_tailrank}&chk_superfeedr=${pageToPing.chk_superfeedr}"
             println(urlString)
-            val htmlContent = client.get<String>(urlString)
+            client.get<String>(urlString)
         }
     } catch (e: Error) {
         return false
