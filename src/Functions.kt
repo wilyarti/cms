@@ -7,6 +7,13 @@ import net.opens3.DB_PASSWORD
 import net.opens3.DB_USERNAME
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import os3.ActiveChannelTable.channel_id
+import os3.ActiveChannelTable.description
+import os3.ActiveChannelTable.last_entry_date
+import os3.ActiveChannelTable.latitude
+import os3.ActiveChannelTable.longitude
+import os3.ActiveChannelTable.name
+import os3.ActiveChannelTable.weather_station
 
 
 fun connectToDB(): Unit {
@@ -54,4 +61,25 @@ fun verifyUserCredentials(thisName: String): AuthUser? {
             }
     }
     return authorisedUser
+}
+fun getAllWeatherStations(): List<ActiveChannel> {
+    val allChannels = mutableListOf<ActiveChannel>()
+    connectToDB()
+    transaction {
+        SchemaUtils.create(ActiveChannelTable)
+        for (thisChannel in ActiveChannelTable.selectAll()) {
+            val addedChannel = ActiveChannel(
+                channel_id = thisChannel[channel_id],
+                last_entry_date = thisChannel[last_entry_date],
+                name = thisChannel[name],
+                description = thisChannel[description],
+                latitude = thisChannel[latitude],
+                longitude = thisChannel[longitude],
+                weatherStation = thisChannel[weather_station]
+            )
+            allChannels.add(addedChannel)
+        }
+
+    }
+    return allChannels
 }

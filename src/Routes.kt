@@ -44,6 +44,8 @@ internal fun Routing.homepageRoute() {
     API()
     // legacy routes for /rtstats.html
     rtStatsGraphingAPI()
+    // channel grapher map
+    channelGrapher()
 
 }
 

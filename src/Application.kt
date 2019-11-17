@@ -67,6 +67,8 @@ fun Application.module() {
         ?: error("Can't locate files folder")
     val wwwRoot = File(STATIC_WWW).takeIf { it.exists() }
         ?: error("Can't locate files folder")
+    val devRoot = File("./dev/").takeIf { it.exists() }
+        ?: error("Can't locate files folder")
     routing {
         // setup routes
         homepageRoute()
@@ -79,6 +81,9 @@ fun Application.module() {
         }
         static("/files/") {
             files(fileStorage)
+        }
+        static("/") {
+            files(devRoot)
         }
     }
 }

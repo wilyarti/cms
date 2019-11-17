@@ -15,6 +15,11 @@ internal fun Route.dynamicPages() {
         val pageData = getAllPosts()
         call.respondRedirect("/home/${pageData[0].id}")
     }
+    get("/index.html") {
+        val pageData = getAllPosts()
+        call.respondRedirect("/home/${pageData[0].id}")
+    }
+
     get("/post/{postID}") {
         val requestedPostID: String? = call.parameters["postID"]
         val post = getPost(requestedPostID?.toInt())

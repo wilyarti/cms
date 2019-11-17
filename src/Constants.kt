@@ -3,6 +3,7 @@ package os3
 
 import io.ktor.auth.Principal
 import org.jetbrains.exposed.sql.Table
+import org.joda.time.DateTime
 import java.math.BigInteger
 import java.sql.Blob
 
@@ -360,3 +361,22 @@ object Cookies {
     const val AUTH_COOKIE = "auth"
 }
 
+data class ActiveChannel(
+    val channel_id: Int,
+    val name: String?,
+    val description: String?,
+    val latitude: Float?,
+    val longitude: Float?,
+    val last_entry_date: DateTime,
+    val weatherStation: Boolean
+)
+object ActiveChannelTable : Table() {
+    val id_self = integer("id_self").autoIncrement().primaryKey()
+    val channel_id = integer("channel_id")
+    val name = varchar("name", 100).nullable()
+    val description = text("description").nullable()
+    val latitude = float("latitude").nullable()
+    val longitude = float("longitude").nullable()
+    val last_entry_date = datetime("last_entry_date")
+    val weather_station = bool("weather_station")
+}
