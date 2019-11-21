@@ -7,20 +7,27 @@ import io.ktor.application.install
 import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.gson.gson
+import io.ktor.html.respondHtml
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.files
 import io.ktor.http.content.static
 import io.ktor.request.path
+import io.ktor.response.respond
 import io.ktor.response.respondRedirect
+import io.ktor.response.respondText
 import io.ktor.routing.routing
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
+import kotlinx.css.body
+import kotlinx.css.h2
+import kotlinx.css.html
 import net.opens3.STATIC_FILESTORAGE
 import net.opens3.STATIC_WWW
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.event.Level
 import java.io.File
+import java.rmi.ServerError
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -59,7 +66,12 @@ fun Application.module() {
         configureFormAuth()
     }
     install(StatusPages) {
-        statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
+        exception<Throwable> { cause ->
+            //call.respond(HttpStatusCode.InternalServerError)
+            call.respondText { "Hi there"}
+        }
+     statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
+
     }
 
     val fileStorage = File(STATIC_FILESTORAGE).takeIf { it.exists() }
