@@ -1,4 +1,4 @@
-# CMS (under development)
+# CMS - Development discontinued
 CMS will be a simple and fast Content Management System. It is written using Kotlin and kTor.
 
 ## Project Goals
